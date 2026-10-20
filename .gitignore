@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.flow-explain/
+__pycache__/
+artifacts/
+*.log

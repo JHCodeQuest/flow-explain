@@ -1,0 +1,24 @@
+{
+  "asOf": "2026-10-22T12:00:00Z",
+  "cases": [
+    {"id":"FE-101","title":"Equipment request stalled after approval","description":"The manager approved the request, but finance has not received it.","status":"blocked","ownerRole":"Operations support","createdAt":"2026-10-20T09:00:00Z","scenario":"routing"},
+    {"id":"FE-102","title":"Team software request awaiting a decision","description":"An approval task remains pending beyond the response window.","status":"waiting","ownerRole":"Service desk","createdAt":"2026-10-19T09:00:00Z","scenario":"overdue"},
+    {"id":"FE-103","title":"Supplier request rejected at validation","description":"The request could not enter the approval stage.","status":"blocked","ownerRole":"Workflow support","createdAt":"2026-10-22T09:00:00Z","scenario":"input"},
+    {"id":"FE-104","title":"Office supplies request has no recent update","description":"The request was submitted, but subsequent evidence is incomplete.","status":"review","ownerRole":"Operations support","createdAt":"2026-10-22T08:00:00Z","scenario":"unknown"}
+  ],
+  "events": [
+    {"id":"E-101","caseId":"FE-101","step":"validation","status":"completed","timestamp":"2026-10-20T09:01:00Z","detail":"Required fields accepted.","errorCode":"","field":""},
+    {"id":"E-102","caseId":"FE-101","step":"manager","status":"completed","timestamp":"2026-10-20T10:00:00Z","detail":"Manager approval recorded.","errorCode":"","field":""},
+    {"id":"E-103","caseId":"FE-101","step":"routing","status":"failed","timestamp":"2026-10-20T10:01:00Z","detail":"Finance task assignment rejected: destination group was not found.","errorCode":"DESTINATION_GROUP_NOT_FOUND","field":"destinationGroup"},
+    {"id":"E-201","caseId":"FE-102","step":"validation","status":"completed","timestamp":"2026-10-19T09:01:00Z","detail":"Required fields accepted.","errorCode":"","field":""},
+    {"id":"E-202","caseId":"FE-102","step":"manager","status":"pending","timestamp":"2026-10-19T09:05:00Z","detail":"Approval task created; no later decision event is present.","errorCode":"","field":""},
+    {"id":"E-301","caseId":"FE-103","step":"validation","status":"failed","timestamp":"2026-10-22T09:01:00Z","detail":"Required cost centre was not supplied.","errorCode":"MISSING_REQUIRED_FIELD","field":"costCentre"},
+    {"id":"E-401","caseId":"FE-104","step":"validation","status":"completed","timestamp":"2026-10-22T08:01:00Z","detail":"Required fields accepted. Later workflow events are unavailable.","errorCode":"","field":""}
+  ],
+  "rules": [
+    {"id":"R-01","step":"manager","kind":"deadline","limitHours":48,"field":"","description":"A pending manager approval should be reviewed after 48 hours without a later decision."},
+    {"id":"R-02","step":"routing","kind":"assignment","limitHours":0,"field":"destinationGroup","description":"A destination group must exist before a finance approval task can be assigned."},
+    {"id":"R-03","step":"validation","kind":"required-input","limitHours":0,"field":"costCentre","description":"Every purchase request must include a cost centre before approval begins."},
+    {"id":"R-04","step":"processing","kind":"heartbeat","limitHours":0,"field":"","description":"A missing event alone does not establish the cause of a stalled workflow. Inspect run history and connector state."}
+  ]
+}
