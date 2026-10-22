@@ -51,6 +51,29 @@ test("shared settings are used and placeholders in the project env file cannot o
   }
 });
 
+test("an invalid Meterless URL blocks Meterless but not an NVIDIA start", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "flow-explain-"));
+  const shared = path.join(dir, "shared.env");
+  fs.writeFileSync(shared, "METERLESS_BASE_URL=https://meterless.example.com/v1\nMETERLESS_RUNTIME_TOKEN=synthetic-shared\nNVIDIA_API_KEY=synthetic-nvidia\n");
+  const saved = { ...process.env };
+  try {
+    for (const key of Object.keys(process.env)) if (key.startsWith("METERLESS_") || key.startsWith("NVIDIA_") || key === "FLOW_EXPLAIN_PROVIDER") delete process.env[key];
+    process.env.FLOW_ENV_FILE = shared;
+    process.env.FLOW_EXPLAIN_PROVIDER = "nvidia";
+    const loaded = loadConfig();
+    assert.equal(loaded.explainProvider, "nvidia"); assert.equal(loaded.nvidiaKey, "synthetic-nvidia");
+    assert.equal(loaded.meterlessToken, ""); // unused provider is inert
+    process.env.FLOW_EXPLAIN_PROVIDER = "meterless";
+    assert.throws(loadConfig, /METERLESS_BASE_URL/);
+    delete process.env.FLOW_EXPLAIN_PROVIDER; // default provider is Meterless
+    assert.throws(loadConfig, /METERLESS_BASE_URL/);
+  } finally {
+    for (const key of Object.keys(process.env)) if (!(key in saved)) delete process.env[key];
+    Object.assign(process.env, saved);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("sends Bearer and Meterless headers with a bounded non-streaming request", async () => {
   const { calls, transport } = runtime(() => chat(good));
   const response = await explainWithNightshift(investigate(demo, "FE-101"), config, transport);

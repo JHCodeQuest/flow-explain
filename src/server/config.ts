@@ -34,10 +34,13 @@ export function loadConfig(): Config {
   if (explainProvider !== "meterless" && explainProvider !== "nvidia") throw new Error("FLOW_EXPLAIN_PROVIDER must be meterless or nvidia.");
   // Runtime settings come only from the shared secret file or the process
   // environment, never from this project's .env.local (which may hold placeholders).
-  const meterlessToken = secret.METERLESS_RUNTIME_TOKEN?.trim() || "";
+  const useMeterless = explainProvider === "meterless";
+  const meterlessToken =secret.METERLESS_RUNTIME_TOKEN?.trim() || "";
   return { port, envFile, explainProvider,
-    meterlessBase: normalizeMeterlessBase(secret.METERLESS_BASE_URL?.trim() || "http://127.0.0.1:8088/v1"),
-    meterlessToken: isUsableToken(meterlessToken) ? meterlessToken : "", meterlessModel: secret.METERLESS_MODEL?.trim() || "meterless/auto", meterlessRepo: path.resolve(ROOT, local.METERLESS_REPO || "../meterless"),
+    // Validate the loopback URL only when Meterless is the selected provider, so a
+    // bad unused value cannot stop NVIDIA from starting; unused settings stay inert.
+    meterlessBase: useMeterless ? normalizeMeterlessBase(secret.METERLESS_BASE_URL?.trim() || "http://127.0.0.1:8088/v1") : "",
+    meterlessToken: useMeterless && isUsableToken(meterlessToken) ? meterlessToken : "", meterlessModel: secret.METERLESS_MODEL?.trim() || "meterless/auto", meterlessRepo: path.resolve(ROOT, local.METERLESS_REPO || "../meterless"),
     zetarisRepo: path.resolve(ROOT, local.ZETARIS_REPO || "../getting-started"),
     memoryDir: path.resolve(ROOT, local.FLOW_MEMORY_DIR || ".flow-explain/memory"),
     python: local.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3"),
