@@ -25,17 +25,20 @@ export function loadConfig(): Config {
   const secret = { ...readEnv(envFile), ...process.env };
   const port = Number(local.FLOW_PORT || "4317");
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("FLOW_PORT must be an integer between 1024 and 65535.");
-  const base = secret.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1";
+  const explainProvider = local.FLOW_EXPLAIN_PROVIDER || "meterless";
+  if (explainProvider !== "meterless" && explainProvider !== "nvidia") throw new Error("FLOW_EXPLAIN_PROVIDER must be meterless or nvidia.");
+  // Only the selected provider is validated; the other stays inert (no key, default
+  // endpoint), so a bad unused value cannot block startup or enable a silent fallback.
+  const useNvidia = explainProvider === "nvidia";
+  const base = useNvidia ? secret.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1" : "https://integrate.api.nvidia.com/v1";
   const url = new URL(base);
   if (url.protocol !== "https:" || url.hostname !== "integrate.api.nvidia.com" || url.port || url.pathname.replace(/\/$/, "") !== "/v1" || url.username || url.password || url.search || url.hash) {
     throw new Error("NVIDIA_BASE_URL must be the official NVIDIA HTTPS /v1 endpoint.");
   }
-  const explainProvider = local.FLOW_EXPLAIN_PROVIDER || "meterless";
-  if (explainProvider !== "meterless" && explainProvider !== "nvidia") throw new Error("FLOW_EXPLAIN_PROVIDER must be meterless or nvidia.");
   // Runtime settings come only from the shared secret file or the process
   // environment, never from this project's .env.local (which may hold placeholders).
   const useMeterless = explainProvider === "meterless";
-  const meterlessToken =secret.METERLESS_RUNTIME_TOKEN?.trim() || "";
+  const meterlessToken = secret.METERLESS_RUNTIME_TOKEN?.trim() || "";
   return { port, envFile, explainProvider,
     // Validate the loopback URL only when Meterless is the selected provider, so a
     // bad unused value cannot stop NVIDIA from starting; unused settings stay inert.
@@ -44,5 +47,5 @@ export function loadConfig(): Config {
     zetarisRepo: path.resolve(ROOT, local.ZETARIS_REPO || "../getting-started"),
     memoryDir: path.resolve(ROOT, local.FLOW_MEMORY_DIR || ".flow-explain/memory"),
     python: local.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3"),
-    nvidiaKey: secret.NVIDIA_API_KEY?.trim() || "", nvidiaModel: secret.NVIDIA_MODEL || "nvidia/nemotron-3.5-lightning-30b-a3b", nvidiaBase: base.replace(/\/$/, "") };
+    nvidiaKey: useNvidia ? secret.NVIDIA_API_KEY?.trim() || "" : "", nvidiaModel: secret.NVIDIA_MODEL || "nvidia/nemotron-3.5-lightning-30b-a3b", nvidiaBase: base.replace(/\/$/, "") };
 }

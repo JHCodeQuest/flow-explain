@@ -74,6 +74,30 @@ test("an invalid Meterless URL blocks Meterless but not an NVIDIA start", () => 
   }
 });
 
+test("an invalid NVIDIA URL blocks NVIDIA but not a Meterless start, and the endpoint restriction holds", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "flow-explain-"));
+  const shared = path.join(dir, "shared.env");
+  const write = (nvidiaUrl: string) => fs.writeFileSync(shared, `METERLESS_RUNTIME_TOKEN=synthetic-shared\nNVIDIA_API_KEY=synthetic-nvidia\nNVIDIA_BASE_URL=${nvidiaUrl}\n`);
+  const saved = { ...process.env };
+  try {
+    for (const key of Object.keys(process.env)) if (key.startsWith("METERLESS_") || key.startsWith("NVIDIA_") || key === "FLOW_EXPLAIN_PROVIDER") delete process.env[key];
+    process.env.FLOW_ENV_FILE = shared;
+    write("http://attacker.example.com/v1");
+    const loaded = loadConfig(); // default provider is Meterless
+    assert.equal(loaded.explainProvider, "meterless"); assert.equal(loaded.meterlessToken, "synthetic-shared");
+    assert.equal(loaded.nvidiaKey, ""); // unused provider is inert, so no silent NVIDIA path exists
+    process.env.FLOW_EXPLAIN_PROVIDER = "nvidia";
+    for (const bad of ["http://attacker.example.com/v1", "https://integrate.api.nvidia.com/v2", "https://user:pw@integrate.api.nvidia.com/v1"]) { write(bad); assert.throws(loadConfig, /NVIDIA_BASE_URL/, bad); }
+    write("https://integrate.api.nvidia.com/v1/");
+    const nvidia = loadConfig();
+    assert.deepEqual([nvidia.nvidiaBase, nvidia.nvidiaKey, nvidia.meterlessToken], ["https://integrate.api.nvidia.com/v1", "synthetic-nvidia", ""]);
+  } finally {
+    for (const key of Object.keys(process.env)) if (!(key in saved)) delete process.env[key];
+    Object.assign(process.env, saved);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("sends Bearer and Meterless headers with a bounded non-streaming request", async () => {
   const { calls, transport } = runtime(() => chat(good));
   const response = await explainWithNightshift(investigate(demo, "FE-101"), config, transport);
