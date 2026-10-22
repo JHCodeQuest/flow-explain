@@ -35,3 +35,14 @@ Independent reviews found no remaining blocker in the reviewed local scope after
 ## Remaining limits
 
 Synthetic snapshots are not registered production sources or a live Power Platform tenant. NVIDIA wording is advisory; valid IDs cannot prove every sentence. Provider output may still be rejected safely. H-MEM reference persistence supports one local process, not concurrent production use. Only the available in-app browser viewport was manually checked. No public host, deployment, tenant authentication, real customer data or workflow remediation is included.
+
+## Hackathon extension: Meterless Nightshift explanation provider
+
+New hackathon work extending the declared pre-existing prototype (the local approval investigation prototype committed as `7feb021`). Scope: one integration, the explanation provider (AC-05); evidence, citation validation, H-MEM and Zetaris behaviour are unchanged.
+
+- Added `src/integrations/meterless.ts` (loopback URL normalisation, authenticated `/v1/models` discovery separating unauthorized from offline, bearer plus `meterless-app`/`meterless-scope` chat call) and moved the shared prompt and citation validation into `src/integrations/explanation.ts`; `nvidia.ts` now uses it with identical behaviour.
+- Meterless is the default provider; `FLOW_EXPLAIN_PROVIDER=nvidia` is explicit opt-in. UI wording and the narrative record the provider and the model that actually answered.
+- Tests (`tests/meterless.test.ts`): configuration and placeholder handling, headers and body, 401/403/offline discovery, 401/403/429/500/timeout, empty/malformed/uncited/invented/note citations, no token leakage.
+- Defect found live: the `meterless/auto` route returned HTTP 502 `empty_response` for the real prompt at `max_tokens` 32 and 512 even with thinking disabled; the routed model reasons (about 2000 completion tokens here). Budget raised to 4096.
+- Live check (2026-10-22, synthetic FE-101): discovery online, wrong token unauthorized, explanation ready with four valid citations; model reported by the runtime: `nvidia/nemotron-3.5-lightning-30b-a3b`.
+- Limits: local only, not pushed or published; the routed model is chosen by Nightshift, so hosted routing is outside this app's control.

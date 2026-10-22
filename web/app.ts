@@ -1,7 +1,7 @@
 import type { ApprovalCase, Investigation, Lesson } from '../src/domain/types.ts';
 
 type Source = 'fixture' | 'zetaris';
-type CaseResponse = { cases: ApprovalCase[]; asOf: string; status: { memory: boolean; nvidia: boolean; zetaris: boolean }; synthetic: true };
+type CaseResponse = { cases: ApprovalCase[]; asOf: string; status: { memory: boolean; explain: boolean; explainProvider: string; zetaris: boolean }; synthetic: true };
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let token = '';
 let cases: ApprovalCase[] = [];
@@ -76,9 +76,11 @@ source.id = 'source';
 for (const [value, label] of [['fixture', 'Local fixtures · offline'], ['zetaris', 'Zetaris · synthetic snapshots']]) {
   const option = el('option', '', label); option.value = value; source.append(option);
 }
+let provider = 'Meterless Nightshift';
 const aiLabel = el('label', 'checkbox-label');
 const ai = el('input'); ai.type = 'checkbox'; ai.id = 'explain';
-append(aiLabel, ai, el('span', '', 'Add NVIDIA explanation'));
+const aiText = el('span', '', 'Add ' + provider + ' explanation');
+append(aiLabel, ai, aiText);
 const investigateButton = el('button', 'primary', 'Investigate case  ↗');
 investigateButton.type = 'submit'; investigateButton.disabled = true;
 append(controls, sourceLabel, source, aiLabel, el('p', 'control-help', 'Optional explanation uses the selected synthetic evidence. Runs only when you investigate.'), investigateButton);
@@ -149,11 +151,11 @@ function renderInvestigation(result: Investigation): void {
   append(header, meta, el('h2', '', result.case.title), el('p', 'detail-source', result.sourceLabel + ' · Snapshot ' + stamp(result.asOf)));
   detail.append(header);
   const summary = el('section', 'summary-panel');
-  append(summary, el('p', 'eyebrow', result.narrative.status === 'ready' ? 'NVIDIA EXPLANATION · CHECK AGAINST EVIDENCE' : 'EVIDENCE SUMMARY'));
+  append(summary, el('p', 'eyebrow', result.narrative.status === 'ready' ? (result.narrative.provider || provider).toUpperCase() + ' EXPLANATION' + (result.narrative.model ? ' · ' + result.narrative.model : '') + ' · CHECK AGAINST EVIDENCE' : 'EVIDENCE SUMMARY'));
   const fallback = result.findings.map(finding => finding.explanation).join(' ') || 'There is insufficient evidence to establish what happened.';
   append(summary, el('p', 'summary-text', result.narrative.text || fallback));
-  if (result.narrative.status === 'unavailable') summary.append(el('p', 'provider-warning', 'NVIDIA explanation unavailable. ' + (result.narrative.reason || 'The deterministic findings remain available.')));
-  if (result.narrative.status === 'not-requested') summary.append(el('p', 'summary-caption', 'Deterministic analysis · NVIDIA explanation not requested'));
+  if (result.narrative.status === 'unavailable') summary.append(el('p', 'provider-warning', provider + ' explanation unavailable. ' + (result.narrative.reason || 'The deterministic findings remain available.')));
+  if (result.narrative.status === 'not-requested') summary.append(el('p', 'summary-caption', 'Deterministic analysis · ' + provider + ' explanation not requested'));
   detail.append(summary);
   const findings = el('section', 'detail-section');
   append(findings, el('h3', 'section-heading', 'What the evidence tells us'));
@@ -234,9 +236,10 @@ async function initialize(): Promise<void> {
     if (!session.ok) throw new Error('Could not establish a local session.');
     token = (await session.json() as { token: string }).token;
     const result = await api<CaseResponse>('/api/cases');
+    provider = result.status.explainProvider; aiText.textContent = 'Add ' + provider + ' explanation';
     cases = result.cases; selectedId = cases[0]?.id || '';
     snapshot.textContent = 'FIXED SNAPSHOT  ·  ' + stamp(result.asOf) + '  ·  Purchase approval process';
-    for (const [label, configured] of [['H-MEM analyst memory', result.status.memory], ['NVIDIA explanation', result.status.nvidia], ['Zetaris snapshots', result.status.zetaris]] as const) {
+    for (const [label, configured] of [['H-MEM analyst memory', result.status.memory], [result.status.explainProvider + ' explanation', result.status.explain], ['Zetaris snapshots', result.status.zetaris]] as const) {
       const row = el('div', 'integration-row'); append(row, el('span', '', label), el('span', configured ? 'configured' : 'not-configured', configured ? 'Configured' : 'Not configured')); integrationRows.append(row);
     }
     renderCases(); renderEmpty(); investigateButton.disabled = !selectedId;

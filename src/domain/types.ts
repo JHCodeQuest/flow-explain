@@ -19,5 +19,5 @@ export interface Lesson { id: string; text: string; scenario: string; sourceCase
 export interface Investigation {
   case: ApprovalCase; asOf: string; findings: Finding[]; timeline: WorkflowEvent[]; rules: ProcessRule[];
   lessons: Lesson[]; source: "fixture" | "zetaris"; sourceLabel: string;
-  narrative: { status: "not-requested" | "ready" | "unavailable"; text: string; reason?: string };
+  narrative: { status: "not-requested" | "ready" | "unavailable"; text: string; reason?: string; provider?: string; model?: string };
 }

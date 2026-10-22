@@ -25,24 +25,28 @@ The app works with the sibling checkout layout used during setup. To change it, 
 | `FLOW_PORT` | `4317`, loopback HTTP port |
 | `FLOW_MEMORY_DIR` | `.flow-explain/memory`, ignored analyst-note store |
 | `PYTHON_BIN` | `python` on Windows, `python3` elsewhere |
-| `NVIDIA_API_KEY` | From the shared secret file or process environment; optional |
+| `FLOW_EXPLAIN_PROVIDER` | `meterless` (default) or `nvidia`; the only provider used, with no fallback |
+| `METERLESS_BASE_URL` | `http://127.0.0.1:8088/v1`; loopback Nightshift runtime only; `/v1`, `/v1/chat/completions` and `/healthz` suffixes are normalised |
+| `METERLESS_RUNTIME_TOKEN` | Runtime bearer token from the shared secret file or process environment; `rt-local` and template placeholders are ignored |
+| `METERLESS_MODEL` | `meterless/auto` |
+| `NVIDIA_API_KEY` | Only for `FLOW_EXPLAIN_PROVIDER=nvidia`; from the shared secret file or process environment |
 | `NVIDIA_MODEL` | `nvidia/nemotron-3.5-lightning-30b-a3b` |
 | `NVIDIA_BASE_URL` | Official `https://integrate.api.nvidia.com/v1` endpoint only |
 
-The shared file's Zetaris settings are read only by the Python adapter: `ZETARIS_API_KEY`, numeric `ZETARIS_ORG_ID`, and loopback `ZETARIS_REST_URL` ending in `/api/v1.0`. Runtime credentials never reach the frontend. UI connection labels mean configured, not verified.
+`METERLESS_*` and `NVIDIA_*` values are read only from the shared file or the process environment, never from this project's `.env.local`, so placeholders there cannot override working settings. The shared file's Zetaris settings are read only by the Python adapter: `ZETARIS_API_KEY`, numeric `ZETARIS_ORG_ID`, and loopback `ZETARIS_REST_URL` ending in `/api/v1.0`. Runtime credentials never reach the frontend. UI connection labels mean configured, not verified.
 
 ## The three layers
 
 - **Zetaris:** selecting the Zetaris source runs a read-only CTE join of the three checked-in synthetic snapshots. The snapshot records are serialized into SQL literals; they are not registered production data sources. Returned rows must exactly match the supplied snapshot. There are no platform writes, schema changes, arbitrary SQL inputs or silent fallbacks. Run the official Zetaris preflight before using this mode.
 - **H-MEM:** analyst notes use the actual Meterless `MemoryStoreService`, retrieval and trust ledger. The separate local store preserves source-case and correction provenance. Matching notes survive restarts and remain labelled unverified advice. Identical notes reuse their memory ID. No general notebook or other-app memories are imported.
-- **NVIDIA:** check **Add NVIDIA explanation** and investigate to send the selected synthetic evidence and relevant bounded analyst notes to the hosted development endpoint. It is opt-in per investigation and subject to account limits. The model has no tools and cannot modify workflows. Unknown citations or invalid responses are rejected; deterministic findings remain visible. Even valid citations do not prove every sentence is correct. Treat wording as advisory.
+- **Meterless Nightshift:** check **Add Meterless Nightshift explanation** and investigate to send the selected synthetic evidence and relevant bounded analyst notes to the local Nightshift runtime (`POST /v1/chat/completions` with `Authorization: Bearer`, `meterless-app: flow-explain`, `meterless-scope: user`, `meterless/auto`). Before generating, the server checks authenticated `GET /v1/models`: 401/403 reports a rejected token, anything else unreachable reports the runtime as not reachable, and no generation is attempted. The requested budget is 4096 tokens because the routed model still reasons and returned an empty reply at 32 and 512; a result names the model that actually answered. A routed model may itself be a hosted one, so the runtime's own routing and privacy settings apply. `FLOW_EXPLAIN_PROVIDER=nvidia` instead selects the older direct NVIDIA adapter (hosted development endpoint); there is no automatic fallback between the two. Explanations are opt-in per investigation and subject to account limits. The model has no tools and cannot modify workflows. Unknown citations or invalid responses are rejected; deterministic findings remain visible. Even valid citations do not prove every sentence is correct. Treat wording as advisory.
 
 ## Demo journey
 
 1. Investigate FE-101 with local fixtures. Follow E-102, E-103 and R-02. The manager already approved; the finance assignment failed.
 2. Add a synthetic analyst note such as “Inspect the routing event before assuming a missing finance task means manager approval is still pending.” Reinvestigate to see it recalled separately from evidence. Current findings do not change.
 3. Investigate FE-102 and FE-103 to see different evidence-driven diagnoses. FE-104 intentionally refuses to name a cause.
-4. Select Zetaris to verify the snapshot join, then optionally request the cited NVIDIA wording. No live Power Platform tenant is connected.
+4. Select Zetaris to verify the snapshot join, then optionally request the cited Nightshift wording. No live Power Platform tenant is connected.
 
 ## Checks and limits
 

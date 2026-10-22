@@ -6,13 +6,14 @@ interface Services {
   memory?: MemoryService;
   zetaris?: (caseId: string) => Promise<Dataset>;
   explain?: (result: Investigation) => Promise<Investigation["narrative"]>;
+  explainProvider?: string;
 }
 export class FlowService {
   constructor(private dataset: Dataset, private adapters: Services) {}
 
   list() {
     return { cases: this.dataset.cases, asOf: this.dataset.asOf, synthetic: true as const,
-      status: { memory: !!this.adapters.memory, zetaris: !!this.adapters.zetaris, nvidia: !!this.adapters.explain } };
+      status: { memory: !!this.adapters.memory, zetaris: !!this.adapters.zetaris, explain: !!this.adapters.explain, explainProvider: this.adapters.explainProvider ?? "Meterless Nightshift" } };
   }
 
   async investigate(caseId: string, source: "fixture" | "zetaris", explain: boolean): Promise<Investigation> {
@@ -24,7 +25,7 @@ export class FlowService {
     result.source = source;
     result.sourceLabel = source === "zetaris" ? "Zetaris read-only join of synthetic snapshots" : "Local synthetic fixtures";
     result.lessons = this.adapters.memory?.recall(item) ?? [];
-    if (explain) result.narrative = this.adapters.explain ? await this.adapters.explain(result) : { status: "unavailable", text: "", reason: "NVIDIA is not configured. The evidence-based findings are unchanged." };
+    if (explain) result.narrative = this.adapters.explain ? await this.adapters.explain(result) : { status: "unavailable", text: "", reason: `${this.adapters.explainProvider ?? "Meterless Nightshift"} is not configured. The evidence-based findings are unchanged.` };
     return result;
   }
 

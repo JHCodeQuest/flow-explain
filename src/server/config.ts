@@ -2,11 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
+import { isUsableToken, normalizeMeterlessBase } from "../integrations/meterless.ts";
 
 export const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 export interface Config {
   port: number; envFile: string; meterlessRepo: string; zetarisRepo: string; memoryDir: string;
   python: string; nvidiaKey: string; nvidiaModel: string; nvidiaBase: string;
+  explainProvider: "meterless" | "nvidia"; meterlessBase: string; meterlessToken: string; meterlessModel: string;
 }
 function readEnv(file: string): Record<string, string> {
   if (!fs.existsSync(file)) return {};
@@ -28,7 +30,14 @@ export function loadConfig(): Config {
   if (url.protocol !== "https:" || url.hostname !== "integrate.api.nvidia.com" || url.port || url.pathname.replace(/\/$/, "") !== "/v1" || url.username || url.password || url.search || url.hash) {
     throw new Error("NVIDIA_BASE_URL must be the official NVIDIA HTTPS /v1 endpoint.");
   }
-  return { port, envFile, meterlessRepo: path.resolve(ROOT, local.METERLESS_REPO || "../meterless"),
+  const explainProvider = local.FLOW_EXPLAIN_PROVIDER || "meterless";
+  if (explainProvider !== "meterless" && explainProvider !== "nvidia") throw new Error("FLOW_EXPLAIN_PROVIDER must be meterless or nvidia.");
+  // Runtime settings come only from the shared secret file or the process
+  // environment, never from this project's .env.local (which may hold placeholders).
+  const meterlessToken = secret.METERLESS_RUNTIME_TOKEN?.trim() || "";
+  return { port, envFile, explainProvider,
+    meterlessBase: normalizeMeterlessBase(secret.METERLESS_BASE_URL?.trim() || "http://127.0.0.1:8088/v1"),
+    meterlessToken: isUsableToken(meterlessToken) ? meterlessToken : "", meterlessModel: secret.METERLESS_MODEL?.trim() || "meterless/auto", meterlessRepo: path.resolve(ROOT, local.METERLESS_REPO || "../meterless"),
     zetarisRepo: path.resolve(ROOT, local.ZETARIS_REPO || "../getting-started"),
     memoryDir: path.resolve(ROOT, local.FLOW_MEMORY_DIR || ".flow-explain/memory"),
     python: local.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3"),

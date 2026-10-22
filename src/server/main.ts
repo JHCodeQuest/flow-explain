@@ -5,6 +5,7 @@ import { FlowService } from "./service.ts";
 import { createFlowServer } from "./http.ts";
 import { createMemory } from "../integrations/memory.ts";
 import { explainWithNvidia } from "../integrations/nvidia.ts";
+import { explainWithNightshift } from "../integrations/meterless.ts";
 import { loadZetarisDataset } from "../integrations/zetaris.ts";
 import type { Dataset } from "../domain/types.ts";
 
@@ -17,7 +18,11 @@ async function main(): Promise<void> {
   const sourceConfigured = fs.existsSync(path.join(config.zetarisRepo, "scripts", "zetaris_sql.py")) && fs.existsSync(config.envFile);
   const service = new FlowService(dataset, { memory,
     zetaris: sourceConfigured ? (caseId) => loadZetarisDataset(dataset, caseId, { repo: config.zetarisRepo, envFile: config.envFile, python: config.python }) : undefined,
-    explain: config.nvidiaKey ? (result) => explainWithNvidia(result, config) : undefined });
+    // One selected provider; a failure never falls through to the other.
+    explainProvider: config.explainProvider === "nvidia" ? "NVIDIA" : "Meterless Nightshift",
+    explain: config.explainProvider === "nvidia"
+      ? (config.nvidiaKey ? (result) => explainWithNvidia(result, config) : undefined)
+      : (config.meterlessToken ? (result) => explainWithNightshift(result, config) : undefined) });
   const server = createFlowServer(service, path.join(ROOT, "dist"));
   server.once("error", () => { console.error("FlowExplain could not start. Check FLOW_PORT and local configuration."); process.exitCode = 1; });
   server.listen(config.port, "127.0.0.1", () => console.log(`FlowExplain local preview: http://127.0.0.1:${config.port}`));
