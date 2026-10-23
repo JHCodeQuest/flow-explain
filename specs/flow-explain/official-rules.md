@@ -32,13 +32,17 @@ The numbered "Official rules" section is treated as binding. The About text, tra
 ## Commit timing against the window
 Commit offsets are +01:00. `7feb021` (20 Oct 09:42 UTC) is before the window and is the declared pre-existing prototype. `a5b92d1` (22 Oct 17:51 UTC) onwards is inside the window. The window and deadline countdown on the page matched the computed time remaining (4 days 16 hours 18 minutes at 07:27 UTC on 23 Oct).
 
-## Discrepancies with the current submission materials
-1. **Cursor (rule 5.1, 6.4).** The rules say teams must use Cursor for development and must explain how. Nothing in the repository, README, plan or `submission.md` mentions Cursor as a development tool. The work done in the recorded Claude Code session did not use Cursor; whether it was used elsewhere is not known to this record. This is unresolved. Do not claim Cursor use unless it is true. Consider asking hackathons@genai.works whether and how this is enforced.
-2. **Video script (rule 6.1).** `submission.md` makes the Zetaris step optional and does not explain how Meterless (H-MEM and Nightshift) is integrated. The rule requires the video to show how both are integrated. The script needs those two explicit segments.
-3. **Slide deck (rule 6.2) is missing** from the materials.
-4. **Written explanation (rule 6.4) is missing.** The description covers Zetaris, Meterless and the model Nightshift routed, but not Cursor, and not as the separate explanation the rule describes.
-5. **Pre-existing declaration (rule 5.4).** The README declaration is not enough; the declaration must also go in the submission form, whose fields are not readable without signing in.
-6. **License.** `submission.md` says to check whether the IP rules require a grant. They do not require an open-source license; 9.1 to 9.3 apply instead. Rule 6.3 needs a GitHub repository that judges can reach, but states no visibility requirement.
-7. **Rules note is stale.** `submission.md` says the rules were only partly readable; that is now resolved by this file.
-8. **Wildcard scoring wording.** The README's "scored on the new work" comes from the track blurb, which is guidance. Under Wildcard, the Zetaris integration and H-MEM are pre-existing and unchanged in the window, so the new work that counts toward sponsor tech is Nightshift and the loop. This is a scoring risk, not a rule breach. The track can still be changed before the deadline (rule 3.3).
-9. **Deadline is not stated** in `submission.md` or the README. It is 27 Oct 2026 23:45 UTC, with registration closing at the same time.
+## Later announcement conflicting with rules 5.1 and 6.4
+The project owner reports that the organizer later announced Cursor is optional and Claude Code is allowed. That announcement has not been seen by this record and its link and date are not recorded. It conflicts with the published rules 5.1 and 6.4 as read on 2026-10-23. Both are recorded; the conflict is not resolved here, and the submission materials do not claim Cursor use. Add the announcement link before relying on it.
+
+## Discrepancies found on the first comparison, and their status
+Status as of the submission-materials update (2026-10-23).
+1. **Cursor (5.1, 6.4):** open conflict, recorded above. The materials state that Claude Code was used and do not claim Cursor.
+2. **Video script (6.1):** addressed. Zetaris and Meterless (H-MEM and Nightshift) are now separate, explained segments.
+3. **Slide deck (6.2):** outline drafted in `submission.md`; deck not built.
+4. **Written explanation (6.4):** drafted in `submission.md`.
+5. **Pre-existing declaration (5.4):** form-ready text drafted in `submission.md`; it still has to be entered in the form, which has not been read.
+6. **License:** addressed. No license is required by the rules; none was added.
+7. **Stale rules note:** removed from `submission.md`.
+8. **Wildcard scoring wording:** unchanged risk. Zetaris and H-MEM are pre-existing and unmodified, so the new sponsor-tech work is Nightshift and the loop. The track can be changed until the deadline (rule 3.3).
+9. **Deadline:** added to `submission.md`: 27 October 2026, 23:45 UTC.
