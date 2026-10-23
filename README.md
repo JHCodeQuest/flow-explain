@@ -60,6 +60,35 @@ When you request a provider explanation, the draft is checked before it is shown
 3. Investigate FE-102 and FE-103 to see different evidence-driven diagnoses. FE-104 intentionally refuses to name a cause.
 4. Select Zetaris to verify the snapshot join, then optionally request the cited Nightshift wording. No live Power Platform tenant is connected.
 
+## Pre-existing work versus hackathon work
+
+Intended track: Wildcard [Tinkerer], which extends an existing project and is scored on the new work. The build window opened on 22 Oct 2026 according to the event page.
+
+**Pre-existing prototype** (commit `7feb021`, 20 Oct 2026, before the window): the deterministic evidence engine and four synthetic scenarios, the loopback API and its security boundary, the read-only Zetaris snapshot join, H-MEM analyst notes, the direct NVIDIA explanation adapter (opt-in) and the interface.
+
+**Hackathon work** (22-23 Oct 2026):
+- Meterless Nightshift as the default explanation route, with authenticated discovery, explicit provider selection and no fallback (`a5b92d1`, `05b9724`, `42263c1`).
+- The bounded draft, check and revise loop, the Review panel in the UI, the labelled mock-runtime demo and their tests (`a813a26` to `f5aea48`).
+- Verification records and submission drafts (`specs/flow-explain/plan.md`, `specs/flow-explain/submission.md`).
+
+**Pre-existing code that the new work changed:** `nvidia.ts` now uses the shared prompt and loop (so its drafts must also pass the checks), and the service, server entry and configuration were wired for the new provider. The evidence engine, H-MEM and Zetaris adapters and the fixture data were not modified.
+
+## Run it offline (for judges)
+
+No credentials, sponsor runtime or network is needed after installing dependencies. Live Nightshift, Zetaris and H-MEM need sponsor runtimes and are evidenced, with dates, in `specs/flow-explain/plan.md`.
+
+```powershell
+npm ci
+npm run build
+npm test                 # synthetic data and mocked providers only
+npm start                # http://127.0.0.1:4317, local fixtures
+npm run demo:loop        # http://127.0.0.1:4318, mock runtime (run build first)
+```
+
+- `npm start` works from fixtures. Without the sibling checkouts, H-MEM and Zetaris show as not configured and the explanation option is unavailable. Investigate FE-101 to FE-104 to see cited findings; FE-104 names no cause.
+- `npm run demo:loop` is labelled **Mock runtime - scripted responses**. It is not a live model. Tick the explanation box and investigate: FE-102 is accepted on the first draft, FE-101 and FE-104 are accepted after one revision, and FE-103 is not accepted, which returns the deterministic findings with a fixed reason.
+- The mock only demonstrates the loop's branches. It says nothing about live model quality.
+
 ## Checks and limits
 
 ```powershell

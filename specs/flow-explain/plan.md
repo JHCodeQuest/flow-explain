@@ -1,5 +1,7 @@
 # Implementation plan and verification
 
+Reading guide: sections are chronological and keep their original dated evidence. Counts and statements in an earlier section describe that point in time; later sections supersede them. The original prototype is `7feb021` (2026-10-20), the Nightshift provider is 2026-10-22, and the feedback loop and its verification are 2026-10-23 (see `git log`).
+
 T-01 verified: pure evidence engine and four synthetic scenarios (AC-01, AC-02).
 T-02 verified: loopback API, separate H-MEM store, opt-in NVIDIA and read-only Zetaris snapshot adapter (AC-03, AC-04, AC-05, AC-07).
 T-03 verified: TypeScript interface, findings, evidence navigation and analyst notebook (AC-01, AC-04, AC-06).
@@ -18,10 +20,10 @@ Dependencies: Vite for TypeScript browser bundling, TypeScript for strict checks
 | AC-03 | Met | Official REST preflight READY. Direct live adapter returned one case, three events and four rules; browser displayed the Zetaris synthetic source. Three Node and seven Python adapter tests cover fixed joins, exact evidence matching and safe failure without fallback. |
 | AC-04 | Met | Actual H-MEM saved a synthetic note as mem-1, recalled it after server restart, and excluded it from other scenarios. Browser labels it unverified advice; deterministic findings remain unchanged. Unit test covers provenance, deduplication and filtering. |
 | AC-05 | Met | Four provider tests cover missing credentials, citation validation and safe errors. Live HTTP 200 returned valid JSON, allowed citations and valid inline references after request hardening, with a synthetic note present. Browser displayed the accepted explanation and also visibly retained findings when an earlier response was rejected. No model text or credentials were logged. |
-| AC-06 | Met within tested viewport | Browser exercised case selection, investigation, keyboard submission, keyboard citation focus, note save/recall and unknown evidence. Narrow in-app viewport visually inspected. Safe textContent rendering reviewed; exact 390px and other browser/viewport combinations were not separately tested. |
+| AC-06 | Met within tested viewport | Browser exercised case selection, investigation, keyboard submission, keyboard citation focus, note save/recall and unknown evidence. Narrow in-app viewport visually inspected. Safe textContent rendering reviewed; exact 390px and other browser/viewport combinations were not separately tested at T-04. Later (2026-10-23): the AC-08 Review panel was checked at 390 px with no horizontal scroll, on the mock runtime, in one browser. |
 | AC-07 | Met for local prototype | HTTP tests reject absent/wrong tokens, cross-origin/invalid Host, malformed modes, unknown cases, oversized bodies and private/static traversal paths before protected access. Independent review inspected actual code/configuration. Multi-user/tenant authorization is excluded. |
 
-Final automated checks: `npm test` passed 14/14 Node tests; `python tests/test-zetaris.py` passed 7/7; `npm run build` passed strict TypeScript checking and Vite build. Dependency audit reported zero vulnerabilities at installation. No lint script is configured. Node's experimental transform warning and npm's existing user-config warning do not fail these commands.
+Final automated checks at T-04 (2026-10-20, historical; the current suite is 44 tests, see the AC-08 section): `npm test` passed 14/14 Node tests; `python tests/test-zetaris.py` passed 7/7; `npm run build` passed strict TypeScript checking and Vite build. Dependency audit reported zero vulnerabilities at installation. No lint script is configured. Node's experimental transform warning and npm's existing user-config warning do not fail these commands.
 
 ## Defects reproduced and resolved
 
@@ -65,7 +67,7 @@ The critic is deterministic and narrow: structural, citation, coverage and named
 
 Checks run: `npm test` 44/44, `python tests/test-zetaris.py` 7/7, `npm run typecheck` and `npm run build` pass.
 
-Demo: `npm run demo:loop` serves the real app against a scripted loopback runtime labelled **Mock runtime — scripted responses**. It is a mock, not live provider evidence, and there is no production demo-mode switch. No live Nightshift or NVIDIA run was made for this extension; the earlier 2026-10-22 live check predates the loop.
+Demo: `npm run demo:loop` serves the real app against a scripted loopback runtime labelled **Mock runtime — scripted responses**. It is a mock, not live provider evidence, and there is no production demo-mode switch. When this section was first written (commit `3eba4b9`, 2026-10-23) no live run had been made for the loop and the earlier 2026-10-22 live check predated it. A single live Nightshift run was made later the same day and is recorded in "Final verification" below; no live NVIDIA run has been made since the loop refactor.
 
 Independent review (a separate AI agent, read-only; not a security guarantee) found no blocking bug. Fixed after review: the remediation regex flagged honest history, inline-ID matching matched prose like "E-mail", and a whitespace regex was quadratic. Added tests for each. Documented rather than changed: empty or truncated replies spend the one revision. Correction made later: the first version of this loop justified a 130 s deadline by the server's 150 s `requestTimeout`, which is wrong (it only bounds receiving the request). The budget is now 180 s, shared by discovery, draft and revision, and excludes a Zetaris query run first (up to 120 s). A cold model load using most of it leaves no time for a revision.
 
