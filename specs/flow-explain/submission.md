@@ -20,7 +20,7 @@ The pre-existing prototype (commit `7feb021`, 20 October 2026) received Codex as
 
 | Rule | Asset | State |
 |---|---|---|
-| 6.1 | Demo video, 1-4 minutes, showing Zetaris and Meterless integration | Script below; not recorded. The Zetaris pre-recording verification passed on 2026-10-23 (see `plan.md`); re-run it on recording day. |
+| 6.1 | Demo video, 1-4 minutes, showing Zetaris and Meterless integration | Recorded locally on 2026-10-23: `artifacts/flowexplain-demo.mp4` (3:51, captions and a synthetic voice-over, ignored by git, not uploaded). The narration is in `artifacts/flowexplain-demo-narration.md`. See `plan.md`, "Demo recording (2026-10-23)". |
 | 6.2 | Slide deck | Six-slide content in `deck.md`; deck not built. |
 | 6.3 | GitHub repository with all source and a README (setup, usage, dependencies) | README exists. The commits are local only; no push has been made and repository visibility is not decided. |
 | 6.4 | Written explanation of Zetaris, Meterless, tooling and NVIDIA use, and what is unique | Drafted below. |
@@ -62,7 +62,7 @@ Judges can run it offline from fixtures and the mock demo (see README).
 
 **What is unique.** Findings come from deterministic rules, not a model. Model wording must pass a deterministic critic (structure, citation validity, evidence coverage, named contradictions), with at most one revision, and a failure returns the evidence with a fixed reason. The checks are not proof of correctness, and a valid citation is not necessarily a relevant one.
 
-**Evidence labels.** Live: Nightshift runs on 22 and 23 October; the 23 October run was accepted on the first draft after one completion. Scripted: the revise and return branches are shown only with the **Mock runtime - scripted responses** demo; a live revise or return has not been observed.
+**Evidence labels.** Live: Nightshift runs on 22 and 23 October; on 23 October one run was accepted on the first draft after one completion, and a later run, recorded for the demo video, was accepted after one revision (the first draft failed the first check). Scripted: the return branch is shown only with the **Mock runtime - scripted responses** demo, which also demonstrates the revise branch; a live return has not been observed.
 
 ## Slide deck (rule 6.2)
 
@@ -80,7 +80,7 @@ Rule for live segments: do not read from this script. Narrate only what appears 
 | 1:30-1:55 | **Meterless H-MEM** | Save an analyst note, reinvestigate. Caption "Live" | The note is stored in Meterless H-MEM, recalled separately as unverified advice, and does not change the findings. |
 | 1:55-2:50 | **Meterless Nightshift** | Tick the explanation and investigate. Caption "Live", plus "wait trimmed" only if trimmed | Explain that Nightshift is the default route. Read out what the Review panel shows: outcome, model the runtime reports, attempts, checks and sources. Say whether each cited source looks relevant, since the critic checks existence and coverage, not relevance. If it fails, say the reason shown and stop. |
 | 2:50-3:25 | Scripted revise and return | Full-screen "Mock runtime - scripted responses", then `npm run demo:loop`: FE-101, then FE-103 | Scripted, not a live model. FE-101: first draft fails, one revision passes the same checks. FE-103: the revision fails, so the findings are shown with a fixed reason. |
-| 3:25-3:40 | Limits | Limits card | "Checks are structural, not proof of correctness. A valid citation is not necessarily relevant. Synthetic data, nothing remediated, and a live revise has not been observed." |
+| 3:25-3:40 | Limits | Limits card | "Checks are structural, not proof of correctness. A valid citation is not necessarily relevant. Synthetic data, nothing remediated, and a live return has not been observed." |
 
 If it runs long, trim the fixture segment, not the Zetaris or Meterless parts.
 

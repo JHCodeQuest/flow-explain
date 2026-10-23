@@ -87,13 +87,13 @@ Nothing here has been submitted or published. The deck is not built yet; this fi
 - Nightshift drafts. A deterministic critic runs six checks: JSON, citations, inline references, coverage, named contradictions, claimed remediation.
 - Accept, revise once, or return the findings with a fixed reason. The same checks must pass again.
 - At most 2 completions and 1 discovery check in a 180 s budget. HTTP errors and timeouts are not revised.
-- **LIVE (Nightshift, 23 Oct 2026):** FE-101 accepted on the first draft. A live revise or return has not been observed.
+- **LIVE (Nightshift, 23 Oct 2026):** FE-101 accepted on the first draft in one run, and after one revision in a later run. A live return has not been observed.
 - **MOCK RUNTIME — SCRIPTED RESPONSES:** FE-102 accepted · FE-101 and FE-104 revised · FE-103 returned with the findings and no model text.
 - The scripted demo shows the branches, not live model quality.
 
 **Visual:** two clearly separated panels. Left, titled "Live": the recorded result (or the live screenshot). Right, titled "Mock runtime — scripted responses": `loop2-fe101.png` (revised) and `loop2-fe103.png` (returned), with the label visible.
 
-**Speaker notes:** I keep these two apart on purpose. Live: one accepted run. Scripted: the only place I can show a revision and a return on demand, because a real model will not fail on cue. I will say plainly that I have not seen a live revision or return. The mock proves the loop's logic, not the model's quality.
+**Speaker notes:** I keep these two apart on purpose. Live: one run accepted on the first draft, and a later run accepted after one revision, where the first draft failed the first check. Scripted: the only place I can show a return on demand, because a real model will not fail on cue. I will say plainly that I have not seen a live return. The mock proves the loop's logic, not the model's quality.
 
 ---
 
@@ -112,7 +112,7 @@ Nothing here has been submitted or published. The deck is not built yet; this fi
 - Nightshift route, draft/check/revise loop, Review panel, scripted demo, tests. Built with Claude Code.
 
 *Future (proposals, not built)*
-- Citation relevance check · registered Zetaris sources · tenant connection with real authorization · observing a live revise and return.
+- Citation relevance check · registered Zetaris sources · tenant connection with real authorization · observing a live return.
 
 **Visual:** three columns (limits, pre-existing, new) with the future list as a footer strip. No screenshots.
 
@@ -132,5 +132,5 @@ Nothing here has been submitted or published. The deck is not built yet; this fi
 | R-04 is from another scenario and the critic does not judge relevance | `plan.md` "Final verification", remaining gaps |
 | Six checks, same checks after revision, 2 completions, 1 discovery, 180 s budget, transport failures not revised | `plan.md` AC-08 section; `README.md` "Explanation review loop" |
 | Scripted outcomes: FE-102 accepted, FE-101 and FE-104 revised, FE-103 returned | `tests/demo-loop.test.ts`; `plan.md` AC-08 (browser run on the final build) |
-| No live revise or return observed | `plan.md` remaining gaps |
+| One live run accepted after one revision (first draft failed the first check); no live return observed | `plan.md` "Demo recording (2026-10-23)" |
 | Codex assistance on the prototype, Claude Code in the window | `submission.md` tooling statement (from the project owner) |

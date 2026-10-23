@@ -132,3 +132,32 @@ Limitations:
 - **Pre-existing component.** The Zetaris adapter is part of the declared pre-existing prototype and was not modified in the window.
 - Elapsed times are wall-clock from this machine and include process start-up.
 - The explanation (Nightshift) was deliberately not requested in this check.
+
+## Demo recording (2026-10-23)
+
+Recording and verification only; no application code was changed.
+
+**Setup.** Two separate browser windows against two local servers: the live app, and the labelled mock demo (**Mock runtime - scripted responses**). Only page content was captured (no address bar, terminals, environment files or account pages). One unrecorded rehearsal followed the script first.
+
+**Rehearsal (not recorded, about 08:00 UTC).** Live Zetaris join 22.8 s. The H-MEM save was de-duplicated. Live Nightshift on FE-101 was accepted on the first draft after 65.0 s. The mock window showed FE-101 revised and FE-103 returned.
+
+**Recorded take (about 08:04-08:08 UTC), live results read from the page:**
+
+| Segment | Result |
+|---|---|
+| Zetaris (live) | Source label "Zetaris read-only join of synthetic snapshots". FE-101 returned 3 events and 4 rules with the finding "The finance handoff failed" in 22.4 s. |
+| H-MEM (live) | One note recalled (`mem-1`). Saving the identical text again left a single `mem-1`; no duplicate was created. |
+| Nightshift (live) | **Accepted after one revision**, 90.2 s, two completions. The first draft failed the first check (valid JSON with a bounded summary and citations), so the other five were not run. The revision passed all six. Model reported by the runtime: `nvidia/nemotron-3.5-lightning-30b-a3b`. The summary cited E-102, E-103, R-02 and R-04. |
+| Mock (scripted) | FE-101 accepted after one revision; FE-103 not accepted, with the fixed reason and no model text. |
+
+**New observation.** This is the first live observation of the revise path. It supersedes the earlier statements, in the sections above and in the earlier drafts, that a live revision had not been observed. A live return has still not been observed. There were three live Nightshift runs on 23 October: two accepted on the first draft (the API verification run and the unrecorded rehearsal) and one accepted after a revision (the recording). They are samples, not an accuracy claim.
+
+**R-04 again.** The live summary cited R-04, a real rule that belongs to a different scenario (insufficient evidence). It passed the checks because the critic verifies existence and coverage, not relevance. The video says so.
+
+**Video.** `artifacts/flowexplain-demo.mp4`, 3:51, 1280 by 840, captions burned in with an `.srt` and a narration transcript alongside. The voice is a synthetic Windows voice (Microsoft Zira) reading text generated from the take's results, so it should be disclosed or replaced with a human voice. Live waits were shown with an on-screen timer; the Nightshift wait was trimmed and marked on screen ("WAIT TRIMMED: 77 s removed (of 90 s)"). The mock segment has a full-screen "Mock runtime - scripted responses" card and a persistent label. The recording is local and ignored by git; it has not been uploaded.
+
+Limitations:
+- One recorded take. The Nightshift outcome differed between the rehearsal and the take, as expected from a live model.
+- The live app window displays the previous result while a new request runs, so during the Nightshift wait the screen still shows the earlier Zetaris label. This is real application behaviour.
+- Audio quality and pacing were not reviewed by a person; the frame checks were done by sampling, not by watching the whole video.
+- Spoken figures (the durations and the trimmed seconds) were computed from the take's data, and the outcome and check results were asserted against it before the narration was built.
