@@ -21,7 +21,7 @@ The pre-existing prototype (commit `7feb021`, 20 October 2026) received Codex as
 | Rule | Asset | State |
 |---|---|---|
 | 6.1 | Demo video, 1-4 minutes, showing Zetaris and Meterless integration | Script below; not recorded. The Zetaris pre-recording verification passed on 2026-10-23 (see `plan.md`); re-run it on recording day. |
-| 6.2 | Slide deck | Outline below; not built. |
+| 6.2 | Slide deck | Six-slide content in `deck.md`; deck not built. |
 | 6.3 | GitHub repository with all source and a README (setup, usage, dependencies) | README exists. The commits are local only; no push has been made and repository visibility is not decided. |
 | 6.4 | Written explanation of Zetaris, Meterless, tooling and NVIDIA use, and what is unique | Drafted below. |
 | 5.4 | Pre-existing product code declared in the submission form | Text below. |
@@ -64,20 +64,9 @@ Judges can run it offline from fixtures and the mock demo (see README).
 
 **Evidence labels.** Live: Nightshift runs on 22 and 23 October; the 23 October run was accepted on the first draft after one completion. Scripted: the revise and return branches are shown only with the **Mock runtime - scripted responses** demo; a live revise or return has not been observed.
 
-## Slide deck outline (rule 6.2)
+## Slide deck (rule 6.2)
 
-Ten slides. Use curated screenshots only (for example `artifacts/loop2-*.png` and `artifacts/final-kb-fe101.png`); do not use the setup screenshots in that folder.
-
-1. **Title and track.** FlowExplain, Wildcard [Tinkerer]. A banner: pre-existing prototype (20 Oct) versus work built in the window.
-2. **Problem and users.** Support analysts explaining why an approval stalled, from fragmented records. Synthetic data.
-3. **Solution.** Screenshot of cited findings, timeline and next check.
-4. **Workflow and architecture.** Diagram: fixtures or Zetaris, then deterministic rules and findings, then H-MEM notes (advisory), then the Nightshift draft, then the critic, then accept, revise once, or return.
-5. **Technical stack.** TypeScript, Node, Vite, Python REST helper, Meterless H-MEM and Nightshift, reported NVIDIA model; Codex assistance on the prototype and Claude Code in the window for development.
-6. **How Zetaris is used.** The fixed read-only join, the exact-match check and no fallback; synthetic snapshots; pre-existing.
-7. **How Meterless is used.** H-MEM notes (pre-existing) and Nightshift (new), with the discovery check and explicit provider.
-8. **Feedback loop.** Two clearly separate panels. Left, titled "Live": the recorded Nightshift result. Right, titled "Mock runtime - scripted responses": the revise and return branches.
-9. **What is unique, and the limits.** Deterministic findings, bounded critic; not proof of correctness; citation validity is not relevance; synthetic data; nothing remediated.
-10. **Future enhancements** (proposals, not built): a relevance check for citations, Zetaris-registered sources, a tenant connection with real authorization.
+The ten-slide outline was reduced to six. The exact slide text, speaker notes, allowed visuals and claim sources are in `specs/flow-explain/deck.md`. The slides are: 1. Problem and audience; 2. Evidence flow and architecture; 3. Zetaris integration and its precise scope; 4. H-MEM notes and live Nightshift evidence; 5. Draft, check, revise: mock demonstrations versus live acceptance; 6. Limits, pre-existing work and new work. The deck is not built yet.
 
 ## Video script (about 3:40; the limit is 4:00)
 
