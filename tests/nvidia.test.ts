@@ -14,14 +14,14 @@ test("explanation is opt-in and missing credentials cause no request", async () 
 test("accepts only known citations and never mutates the findings", async () => {
   const result = investigate(demo, "FE-101");
   const original = JSON.stringify(result);
-  for (const citations of [["E-103", "R-02"], ["E-imaginary"]]) {
+  for (const citations of [["E-102", "E-103", "R-02"], ["E-imaginary"]]) {
     const transport = (async (_url, options) => {
       assert.ok(String(options?.body).includes("E-103"));
       assert.ok(!String(options?.body).includes(config.nvidiaKey));
-      return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ summary: "The routing event reports a failed assignment.", citations }) } }] }));
+      return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ summary: "Manager approval completed (E-102); the assignment failed (E-103) under R-02.", citations }) } }] }));
     }) as typeof fetch;
     const response = await explainWithNvidia(result, config, transport);
-    assert.equal(response.status, citations[0] === "E-103" ? "ready" : "unavailable");
+    assert.equal(response.status, citations[0] === "E-102" ? "ready" : "unavailable");
   }
   assert.equal(JSON.stringify(result), original);
 });

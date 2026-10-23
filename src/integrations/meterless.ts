@@ -1,5 +1,5 @@
 import type { Investigation } from "../domain/types.ts";
-import { explanationMessages, validateCitedSummary } from "./explanation.ts";
+import { ProviderError, reviewedExplanation, type Complete } from "./review.ts";
 export interface MeterlessConfig { meterlessBase: string; meterlessToken: string; meterlessModel: string }
 export type RuntimeState = "online" | "unauthorized" | "offline";
 
@@ -44,28 +44,27 @@ const unavailable = (reason: string): Investigation["narrative"] => ({ status: "
 
 /** Optional wording only, through the local Meterless Nightshift runtime. Never
  * falls back to another provider; deterministic findings are unchanged on failure.
+ * Discovery runs once; the draft/check/revise loop reuses it.
  */
 export async function explainWithNightshift(result: Investigation, config: MeterlessConfig, transport: typeof fetch = fetch): Promise<Investigation["narrative"]> {
   if (!config.meterlessToken) return unavailable("Meterless Nightshift is not configured. The evidence-based result is still available.");
   const state = await checkNightshift(config, transport);
   if (state === "unauthorized") return unavailable("Nightshift rejected the runtime token. Check local configuration.");
   if (state === "offline") return unavailable("Nightshift is not reachable at the configured address. Start the runtime and try again.");
-  const { messages, allowed } = explanationMessages(result);
-  try {
-    // 4096 tokens: the routed model still reasons despite enable_thinking:false and needed ~2000 for
-    // this prompt; 32 and 512 returned an empty reply (502). 180 s: model loads can take minutes.
+  // 4096 tokens: the routed model still reasons despite enable_thinking:false and needed ~2000 for
+  // this prompt; 32 and 512 returned an empty reply (502). The signal is the loop's shared deadline.
+  const complete: Complete = async (messages, signal) => {
     const response = await transport(`${config.meterlessBase}/chat/completions`, {
-      method: "POST", redirect: "error", signal: AbortSignal.timeout(180_000), headers: headers(config, true),
+      method: "POST", redirect: "error", signal, headers: headers(config, true),
       body: JSON.stringify({ model: config.meterlessModel, stream: false, temperature: 0, max_tokens: 4096, chat_template_kwargs: { enable_thinking: false }, messages }),
     });
     if (!response.ok) {
       await response.body?.cancel();
-      return unavailable(response.status === 429 ? "Nightshift is rate limited. Try later." : response.status === 401 || response.status === 403 ? "Nightshift rejected the runtime token. Check local configuration." : "Nightshift is unavailable. Try later.");
+      throw new ProviderError(response.status === 429 ? "Nightshift is rate limited. Try later." : response.status === 401 || response.status === 403 ? "Nightshift rejected the runtime token. Check local configuration." : "Nightshift is unavailable. Try later.");
     }
+    // Only message.content is read; any reasoning field is ignored and never returned.
     const data = await response.json() as { model?: unknown; choices?: { message?: { content?: unknown } }[] };
-    const text = validateCitedSummary(data?.choices?.[0]?.message?.content, allowed);
-    return { status: "ready", text, provider: "Meterless Nightshift", model: typeof data.model === "string" ? data.model.slice(0, 80) : config.meterlessModel };
-  } catch {
-    return unavailable("Nightshift did not return a valid cited explanation or the request timed out. The deterministic findings are unchanged.");
-  }
+    return { content: data?.choices?.[0]?.message?.content, model: typeof data.model === "string" ? data.model : undefined };
+  };
+  return reviewedExplanation(result, complete, { provider: "Meterless Nightshift", model: config.meterlessModel, failure: "Nightshift did not respond in time or returned an unreadable reply. The deterministic findings are unchanged." });
 }

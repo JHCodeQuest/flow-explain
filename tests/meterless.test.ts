@@ -11,7 +11,7 @@ const demo: Dataset = JSON.parse(fs.readFileSync(new URL("../data/demo.json", im
 const config = { meterlessBase: "http://127.0.0.1:8088/v1", meterlessToken: "synthetic-secret", meterlessModel: "meterless/auto" };
 const models = () => new Response(JSON.stringify({ data: [{ id: "meterless/auto" }] }));
 const chat = (content: unknown, model = "synthetic-routed-model") => new Response(JSON.stringify({ model, choices: [{ message: { content: typeof content === "string" ? content : JSON.stringify(content) } }] }));
-const good = { summary: "The routing event reports a failed assignment.", citations: ["E-103", "R-02"] };
+const good = { summary: "Manager approval completed (E-102); the finance assignment then failed (E-103) under rule R-02. A person should check the destination group.", citations: ["E-102", "E-103", "R-02"] };
 /** Answers /models and /chat/completions, recording each request. */
 function runtime(onChat: () => Response, onModels: () => Response = models) {
   const calls: { url: string; options?: RequestInit }[] = [];
@@ -104,7 +104,8 @@ test("sends Bearer and Meterless headers with a bounded non-streaming request", 
   assert.equal(response.status, "ready");
   assert.equal(response.provider, "Meterless Nightshift");
   assert.equal(response.model, "synthetic-routed-model");
-  assert.match(response.text, /Sources: E-103, R-02/);
+  assert.match(response.text, /Sources: E-102, E-103, R-02/);
+  assert.equal(response.review?.outcome, "accepted");
   assert.deepEqual(calls.map((c) => c.url), ["http://127.0.0.1:8088/v1/models", "http://127.0.0.1:8088/v1/chat/completions"]);
   for (const call of calls) {
     const headers = call.options?.headers as Record<string, string>;
