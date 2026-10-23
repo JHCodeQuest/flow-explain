@@ -12,10 +12,13 @@ const LABELS: Record<CheckId, string> = {
   coverage: "Cites all evidence and rules the findings use",
   contradiction: "No named contradiction of the findings",
   "no-change": "Claims no change or remediation was made",
-  notes: "Does not copy analyst notes",
 };
 const ORDER = Object.keys(LABELS) as CheckId[];
-const DEADLINE_MS = 130_000; // + 10 s discovery stays under the server's 150 s request timeout
+/** One budget for the whole explanation phase: Nightshift discovery, the draft and the
+ * revision (critic time is negligible). It starts when explanation begins, so it excludes
+ * request receipt and any Zetaris query that ran earlier. 180 s is the previous single-call ceiling.
+ */
+export const EXPLAIN_BUDGET_MS = 180_000;
 const MIN_REVISION_MS = 20_000;
 
 const CONTRADICTIONS: Record<string, RegExp[]> = {
@@ -28,18 +31,6 @@ const HEDGE = /\b(?:unknown|insufficient|not enough|cannot|can't|does not establ
 // Only claims by the tool/author ("we retried", "has been resubmitted"); past events recorded in the evidence may be described.
 const CHANGE = /\b(?:(?:i|we)\s+(?:have\s+|had\s+)?|(?:has|have)\s+been\s+)(?:fixed|restarted|retried|resubmitted|escalated|reassigned|reset|re-?run)\b/i;
 const REF = /\b(?:[ER]-\d[A-Za-z0-9_]*(?:-[A-Za-z0-9_]+)*|mem-[A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(?![A-Za-z0-9_-])/gi;
-const words = (text: string) => text.toLowerCase().match(/[a-z0-9']+/g) ?? [];
-
-function copiesNote(summary: string, notes: string[]): boolean {
-  const body = ` ${words(summary).join(" ")} `;
-  return notes.some((note) => {
-    const w = words(note); const run = Math.min(8, w.length);
-    if (run < 4) return false;
-    for (let i = 0; i + run <= w.length; i++) if (body.includes(` ${w.slice(i, i + run).join(" ")} `)) return true;
-    return false;
-  });
-}
-
 /** Structural, citation, coverage and named-contradiction checks. These do not
  * prove the wording is factually correct; they catch the defined failure classes.
  */
@@ -63,7 +54,6 @@ export function critique(result: Investigation, content: unknown, allowed: Set<s
     const hit = result.findings.filter((f) => CONTRADICTIONS[f.id]?.some((re) => re.test(summary)) || (f.id === "F-unknown" && !HEDGE.test(summary)));
     set("contradiction", !hit.length, hit.flatMap((f) => f.evidenceIds));
     set("no-change", !CHANGE.test(summary));
-    set("notes", !copiesNote(summary, result.lessons.map((l) => l.text)));
   }
   const checks = ORDER.map((id) => res.get(id)!);
   return { attempt: { passed: checks.every((c) => c.status === "pass"), checks }, summary, citations };
@@ -74,15 +64,16 @@ const unavailable = (reason: string, review: Review): Investigation["narrative"]
 /** Draft, check, then revise at most once with the same provider. Both attempts must
  * pass the same checks. A failure returns the deterministic result with a fixed reason.
  */
-export async function reviewedExplanation(result: Investigation, complete: Complete, opts: { provider: string; model: string; failure: string; now?: () => number }): Promise<Investigation["narrative"]> {
-  const now = opts.now ?? Date.now; const start = now();
-  const remaining = () => DEADLINE_MS - (now() - start);
+export async function reviewedExplanation(result: Investigation, complete: Complete, opts: { provider: string; model: string; failure: string; now?: () => number; startedAt?: number }): Promise<Investigation["narrative"]> {
+  const now = opts.now ?? Date.now; const start = opts.startedAt ?? now();
+  const remaining = () => EXPLAIN_BUDGET_MS - (now() - start);
   const attempts: ReviewAttempt[] = [];
   const returned = (reason: string) => unavailable(reason, { outcome: "returned", reason, attempts });
   let draft: ReturnType<typeof critique> | undefined; let prompt = explanationMessages(result);
   for (const n of [1, 2] as const) {
+    if (remaining() <= 0) return returned("The explanation time budget was used up. The deterministic findings are shown instead.");
     let reply: Awaited<ReturnType<Complete>>;
-    try { reply = await complete(prompt.messages, AbortSignal.timeout(Math.max(1, remaining()))); }
+    try { reply = await complete(prompt.messages, AbortSignal.timeout(remaining())); }
     catch (error) { return returned(error instanceof ProviderError ? error.message : opts.failure); }
     draft = critique(result, reply.content, prompt.allowed);
     attempts.push({ n, ...draft.attempt });

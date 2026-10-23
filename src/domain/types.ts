@@ -16,7 +16,7 @@ export interface Finding {
   evidenceIds: string[]; ruleIds: string[]; nextCheck: string;
 }
 export interface Lesson { id: string; text: string; scenario: string; sourceCaseId: string; createdAt: string }
-export type CheckId = "envelope" | "citations" | "inline" | "coverage" | "contradiction" | "no-change" | "notes";
+export type CheckId = "envelope" | "citations" | "inline" | "coverage" | "contradiction" | "no-change";
 /** Fixed-template result of one critic check; `refs` holds only validated evidence/rule IDs. */
 export interface ReviewCheck { id: CheckId; label: string; status: "pass" | "fail" | "skipped"; refs?: string[] }
 export interface ReviewAttempt { n: 1 | 2; passed: boolean; checks: ReviewCheck[] }

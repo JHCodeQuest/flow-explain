@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { investigate } from "../src/domain/investigate.ts";
-import { critique, ProviderError, reviewedExplanation, type Complete } from "../src/integrations/review.ts";
+import { critique, EXPLAIN_BUDGET_MS, ProviderError, reviewedExplanation, type Complete } from "../src/integrations/review.ts";
 import { explainWithNightshift } from "../src/integrations/meterless.ts";
 import { explainWithNvidia } from "../src/integrations/nvidia.ts";
 import { explanationMessages } from "../src/integrations/explanation.ts";
@@ -42,19 +42,24 @@ test("the critic passes a compliant draft and names each failed check", () => {
 });
 test("a failed envelope skips the dependent checks and refs are validated IDs only", () => {
   const r = run("FE-101", "plain prose");
-  assert.deepEqual(r.attempt.checks.filter((c) => c.status === "skipped").map((c) => c.id), ["citations", "inline", "coverage", "contradiction", "no-change", "notes"]);
+  assert.deepEqual(r.attempt.checks.filter((c) => c.status === "skipped").map((c) => c.id), ["citations", "inline", "coverage", "contradiction", "no-change"]);
   const c = run("FE-101", draft("The assignment failed.", ["E-103", "R-02"]).content).attempt.checks.find((x) => x.id === "coverage")!;
   assert.deepEqual(c.refs, ["E-102"]);
 });
-test("notes are advisory: they never change evidence checks and verbatim copies fail the notes check", () => {
+test("analyst notes cannot change any critic result", () => {
   const plain = investigate(demo, "FE-101"); const noted = investigate(demo, "FE-101");
-  noted.lessons = [{ id: "mem-1", text: "Inspect the routing event before assuming a missing finance task means approval is pending.", scenario: "routing", sourceCaseId: "FE-101", createdAt: "2026-10-20T09:00:00Z" }];
+  const note = "Inspect the routing event and the finance group configuration before escalating anything.";
+  noted.lessons = [{ id: "mem-1", text: note, scenario: "routing", sourceCaseId: "FE-101", createdAt: "2026-10-20T09:00:00Z" },
+    { id: "mem-2", text: "The manager has not approved this request, so finance never got it.", scenario: "routing", sourceCaseId: "FE-101", createdAt: "2026-10-20T09:00:00Z" }];
   const allowed = explanationMessages(plain).allowed;
-  const strip = (r: ReturnType<typeof critique>) => r.attempt.checks.filter((c) => c.id !== "notes");
-  assert.deepEqual(strip(critique(plain, GOOD.content, allowed)), strip(critique(noted, GOOD.content, allowed)));
-  assert.equal(critique(noted, GOOD.content, allowed).attempt.passed, true);
-  const copy = draft("Manager approval completed (E-102); E-103 failed under R-02. Inspect the routing event before assuming a missing finance task means approval is pending.", ["E-102", "E-103", "R-02"]).content;
-  assert.deepEqual(failed(critique(noted, copy, allowed)).includes("notes"), true);
+  assert.ok(!allowed.has("mem-1") && !explanationMessages(noted).allowed.has("mem-1")); // notes are never citable
+  const drafts = [GOOD.content, BAD.content, "plain prose",
+    draft(`Manager approval completed (E-102); E-103 failed under R-02. ${note}`, ["E-102", "E-103", "R-02"]).content, // copies a note: still passes
+    draft("Manager approval completed (E-102); E-103 failed under R-02.", ["E-102", "E-103", "R-02", "mem-1"]).content]; // cites a note: still fails
+  for (const content of drafts) assert.deepEqual(critique(noted, content, allowed), critique(plain, content, allowed));
+  assert.equal(critique(noted, drafts[3], allowed).attempt.passed, true);
+  assert.deepEqual(failed(critique(noted, drafts[4], allowed)), ["citations"]);
+  assert.equal(critique(noted, drafts[1], allowed).attempt.passed, false); // a note stating the same contradiction gives it no authority
 });
 
 test("accepted: a passing first draft makes one call", async () => {
@@ -67,7 +72,7 @@ test("revised: one revision carries only fixed failure codes and must pass the s
   const n = await reviewedExplanation(result, s.complete, { ...opts, model: "m" });
   assert.equal(n.review?.outcome, "revised"); assert.equal(s.prompts.length, 2); assert.equal(n.status, "ready");
   assert.deepEqual(n.review!.attempts.map((a) => a.passed), [false, true]);
-  assert.deepEqual(n.review!.attempts[1].checks.map((c) => c.status), Array(7).fill("pass"));
+  assert.deepEqual(n.review!.attempts[1].checks.map((c) => c.status), Array(6).fill("pass"));
   assert.match(n.text, /Manager approval completed/); assert.doesNotMatch(JSON.stringify(n), /has not approved/);
   const revision = JSON.parse(s.prompts[1]).revision;
   assert.deepEqual(revision.failedChecks.map((c: { id: string }) => c.id), ["coverage", "contradiction"]);
@@ -93,11 +98,47 @@ test("transport failures are never revised", async () => {
     assert.equal(n.reason, error instanceof ProviderError ? error.message : opts.failure);
   }
 });
-test("no revision starts when the shared deadline has nearly passed", async () => {
-  let t = 0; const s = script(BAD, GOOD);
-  const complete: Complete = async (m, signal) => { const r = await s.complete(m, signal); t += 125_000; return r; };
-  const n = await reviewedExplanation(investigate(demo, "FE-101"), complete, { ...opts, now: () => t });
-  assert.equal(s.prompts.length, 1); assert.match(n.reason!, /No time remained/);
+test("the explanation budget is shared: no revision starts with under 20 s left, none at exhaustion", async () => {
+  for (const [spent, reason] of [[165_000, /No time remained for a revision/], [EXPLAIN_BUDGET_MS, /No time remained for a revision/]] as const) {
+    let t = 0; const s = script(BAD, GOOD);
+    const complete: Complete = async (m, signal) => { const r = await s.complete(m, signal); t += spent; return r; };
+    const n = await reviewedExplanation(investigate(demo, "FE-101"), complete, { ...opts, now: () => t });
+    assert.equal(s.prompts.length, 1, String(spent)); assert.match(n.reason!, reason); assert.equal(n.review?.outcome, "returned");
+  }
+  let t = 0; const s = script(BAD, GOOD); // 160 s spent leaves 20 s: the revision is still allowed
+  const ok = await reviewedExplanation(investigate(demo, "FE-101"), async (m, signal) => { t += 80_000; return s.complete(m, signal); }, { ...opts, now: () => t });
+  assert.equal(ok.review?.outcome, "revised");
+});
+test("a budget already spent before the draft makes no provider call", async () => {
+  const s = script(GOOD);
+  const n = await reviewedExplanation(investigate(demo, "FE-101"), s.complete, { ...opts, now: () => EXPLAIN_BUDGET_MS, startedAt: 0 });
+  assert.equal(s.prompts.length, 0); assert.equal(n.status, "unavailable"); assert.match(n.reason!, /time budget was used up/);
+});
+test("a call still running when the budget ends is aborted and returned, not revised", async () => {
+  let calls = 0;
+  const slow: Complete = (_m, signal) => { calls++; return new Promise((_, reject) => signal.addEventListener("abort", () => reject(signal.reason))); };
+  const n = await reviewedExplanation(investigate(demo, "FE-101"), slow, { ...opts, startedAt: Date.now() - (EXPLAIN_BUDGET_MS - 50) });
+  assert.equal(calls, 1); assert.equal(n.review?.outcome, "returned"); assert.equal(n.reason, opts.failure);
+});
+test("Nightshift discovery draws on the same budget as the draft and revision", async () => {
+  const cfg = { meterlessBase: "http://127.0.0.1:8088/v1", meterlessToken: "synthetic-secret", meterlessModel: "meterless/auto" };
+  const harness = (discovery: number, perChat: number) => {
+    let t = 0; const urls: string[] = []; let chats = 0;
+    const transport = (async (url: string) => {
+      urls.push(url);
+      if (url.endsWith("/models")) { t += discovery; return new Response(JSON.stringify({ data: [{ id: "meterless/auto" }] })); }
+      t += perChat; return new Response(JSON.stringify({ choices: [{ message: { content: (chats++ ? GOOD : BAD).content } }] }));
+    }) as typeof fetch;
+    return { urls, run: () => explainWithNightshift(investigate(demo, "FE-101"), cfg, transport, () => t) };
+  };
+  const spent = harness(EXPLAIN_BUDGET_MS, 0); // discovery alone uses the budget: no chat call
+  const a = await spent.run();
+  assert.deepEqual(spent.urls, ["http://127.0.0.1:8088/v1/models"]); assert.match(a.reason!, /time budget was used up/);
+  const tight = harness(100_000, 70_000); // 100 + 70 leaves 10 s: the draft ran, the revision did not
+  const b = await tight.run();
+  assert.equal(tight.urls.filter((u) => u.endsWith("/chat/completions")).length, 1); assert.match(b.reason!, /No time remained for a revision/);
+  const roomy = harness(10_000, 40_000); // 10 + 40 + 40 = 90 s: both calls fit
+  assert.equal((await roomy.run()).review?.outcome, "revised"); assert.equal(roomy.urls.length, 3);
 });
 test("a content failure on any malformed reply is revised once, then returned", async () => {
   const s = script({ content: "" }, { content: undefined });
@@ -142,12 +183,9 @@ test("honest history, prose look-alikes and paraphrased notes do not fail; look-
   for (const bad of ["We retried the handoff (E-102, E-103, R-02).", "The handoff has been resubmitted (E-102, E-103, R-02).", "See MEM-1 and e-103 (E-102, E-103, R-02)."]) assert.equal(run("FE-101", draft(bad, ["E-102", "E-103", "R-02"]).content).attempt.passed, false, bad);
   assert.deepEqual(failed(run("FE-101", " ".repeat(10_000))), ["envelope"]);
 });
-test("each completion receives a live abort signal sized to the remaining shared deadline", async () => {
+test("each completion receives a live abort signal", async () => {
   const signals: AbortSignal[] = [];
   const complete: Complete = async (_m, signal) => { signals.push(signal); return signals.length === 1 ? BAD : GOOD; };
   await reviewedExplanation(investigate(demo, "FE-101"), complete, opts);
   assert.equal(signals.length, 2); assert.ok(signals.every((s) => !s.aborted));
-  const slow: Complete = (_m, signal) => new Promise((_, reject) => signal.addEventListener("abort", () => reject(signal.reason)));
-  let t = 0; const n = await reviewedExplanation(investigate(demo, "FE-101"), slow, { ...opts, now: () => (t += 129_999) });
-  assert.equal(n.review?.outcome, "returned"); assert.equal(n.reason, opts.failure);
 });

@@ -1,5 +1,5 @@
 import type { Investigation } from "../domain/types.ts";
-import { ProviderError, reviewedExplanation, type Complete } from "./review.ts";
+import { EXPLAIN_BUDGET_MS, ProviderError, reviewedExplanation, type Complete } from "./review.ts";
 export interface MeterlessConfig { meterlessBase: string; meterlessToken: string; meterlessModel: string }
 export type RuntimeState = "online" | "unauthorized" | "offline";
 
@@ -30,9 +30,9 @@ const headers = (config: MeterlessConfig, chat: boolean): Record<string, string>
 });
 
 /** Authenticated model discovery: 401/403 is unauthorized, 200 with meterless ids is online, all else offline. */
-export async function checkNightshift(config: MeterlessConfig, transport: typeof fetch = fetch): Promise<RuntimeState> {
+export async function checkNightshift(config: MeterlessConfig, transport: typeof fetch = fetch, timeoutMs = 10_000): Promise<RuntimeState> {
   try {
-    const response = await transport(`${config.meterlessBase}/models`, { headers: headers(config, false), redirect: "error", signal: AbortSignal.timeout(10_000) });
+    const response = await transport(`${config.meterlessBase}/models`, { headers: headers(config, false), redirect: "error", signal: AbortSignal.timeout(Math.max(1, timeoutMs)) });
     if (response.status === 401 || response.status === 403) { await response.body?.cancel(); return "unauthorized"; }
     if (!response.ok) { await response.body?.cancel(); return "offline"; }
     const data = await response.json() as { data?: { id?: unknown }[] };
@@ -44,11 +44,12 @@ const unavailable = (reason: string): Investigation["narrative"] => ({ status: "
 
 /** Optional wording only, through the local Meterless Nightshift runtime. Never
  * falls back to another provider; deterministic findings are unchanged on failure.
- * Discovery runs once; the draft/check/revise loop reuses it.
+ * Discovery runs once, inside the same budget as the draft and revision.
  */
-export async function explainWithNightshift(result: Investigation, config: MeterlessConfig, transport: typeof fetch = fetch): Promise<Investigation["narrative"]> {
+export async function explainWithNightshift(result: Investigation, config: MeterlessConfig, transport: typeof fetch = fetch, now: () => number = Date.now): Promise<Investigation["narrative"]> {
+  const startedAt = now(); // the explanation budget covers discovery, draft and revision
   if (!config.meterlessToken) return unavailable("Meterless Nightshift is not configured. The evidence-based result is still available.");
-  const state = await checkNightshift(config, transport);
+  const state = await checkNightshift(config, transport, Math.min(10_000, EXPLAIN_BUDGET_MS));
   if (state === "unauthorized") return unavailable("Nightshift rejected the runtime token. Check local configuration.");
   if (state === "offline") return unavailable("Nightshift is not reachable at the configured address. Start the runtime and try again.");
   // 4096 tokens: the routed model still reasons despite enable_thinking:false and needed ~2000 for
@@ -66,5 +67,5 @@ export async function explainWithNightshift(result: Investigation, config: Meter
     const data = await response.json() as { model?: unknown; choices?: { message?: { content?: unknown } }[] };
     return { content: data?.choices?.[0]?.message?.content, model: typeof data.model === "string" ? data.model : undefined };
   };
-  return reviewedExplanation(result, complete, { provider: "Meterless Nightshift", model: config.meterlessModel, failure: "Nightshift did not respond in time or returned an unreadable reply. The deterministic findings are unchanged." });
+  return reviewedExplanation(result, complete, { now, startedAt, provider: "Meterless Nightshift", model: config.meterlessModel, failure: "Nightshift did not respond in time or returned an unreadable reply. The deterministic findings are unchanged." });
 }
