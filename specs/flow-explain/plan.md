@@ -61,10 +61,36 @@ The critic is deterministic and narrow: structural, citation, coverage and named
 | Findings authoritative, notes advisory | Met | `deepEqual` of findings before and after, in unit and HTTP tests; `mem-*` fails `citations`; regression test: `critique` output is identical with and without notes, including a note that restates a contradiction and a draft that copies a note, so notes cannot change any critic result. |
 | Provider selection, no fallback, secrets | Met | Global `fetch` spy sees zero stray calls; NVIDIA and Nightshift tests hit only their own endpoint; response scan finds no token, failed-draft text or `reasoning_content` sentinel. |
 | Limits | Met | At most 2 completions, 1 discovery, one 180 s budget covering discovery, draft and revision (excludes request receipt and Zetaris); fake-clock tests for exhaustion before the draft, during discovery, between draft and revision and at the 20 s revision floor, plus a real-timer test that a running call is aborted. No new request fields (`review:false` still 400). |
-| UI review panel | Met within tested scope | `renderReview` uses textContent only (no innerHTML in source or bundle). Browser evidence is from the **mock runtime — scripted responses** (`npm run demo:loop`), not a live provider. A throwaway Chrome driven by browser-use ran after the final code change: a keyboard-only FE-101 run (earlier build) gave "Accepted after one revision"; on the final build FE-102 was accepted on the first draft, FE-101 and FE-104 revised, and FE-103 not accepted with the fixed reason and unchanged findings. Each attempt listed six checks, with no analyst-note row. The page text contained none of the failed-draft, reasoning or token sentinels, and the mock label showed in the checkbox, sidebar and result eyebrow. At 390 px there was no horizontal scroll (screenshots `artifacts/loop2-*.png`, ignored). Not tested: other browsers or viewports, screen readers, and keyboard-only operation of the final build. Pre-existing: after Enter on a case card the list re-renders and focus returns to the first card. |
+| UI review panel | Met within tested scope | `renderReview` uses textContent only (no innerHTML in source or bundle). Browser evidence is from the **mock runtime — scripted responses** (`npm run demo:loop`), not a live provider. A throwaway Chrome driven by browser-use ran after the final code change: a keyboard-only FE-101 run (earlier build) gave "Accepted after one revision"; on the final build FE-102 was accepted on the first draft, FE-101 and FE-104 revised, and FE-103 not accepted with the fixed reason and unchanged findings. Each attempt listed six checks, with no analyst-note row. The page text contained none of the failed-draft, reasoning or token sentinels, and the mock label showed in the checkbox, sidebar and result eyebrow. At 390 px there was no horizontal scroll (screenshots `artifacts/loop2-*.png`, ignored). Keyboard-only operation was repeated on the final build (commit `f5aea48`, mock runtime): Tab to the FE-101 card, Enter, Tab to the source select and the explanation checkbox, Space, Tab to the button, Enter gave "Accepted after one revision" with six checks per attempt, and Tab to a citation plus Enter moved focus to its timeline event. Not tested: other browsers or viewports, and screen readers. Pre-existing: after Enter on a case card the list re-renders and focus returns to the first card. |
 
 Checks run: `npm test` 44/44, `python tests/test-zetaris.py` 7/7, `npm run typecheck` and `npm run build` pass.
 
 Demo: `npm run demo:loop` serves the real app against a scripted loopback runtime labelled **Mock runtime — scripted responses**. It is a mock, not live provider evidence, and there is no production demo-mode switch. No live Nightshift or NVIDIA run was made for this extension; the earlier 2026-10-22 live check predates the loop.
 
 Independent review (a separate AI agent, read-only; not a security guarantee) found no blocking bug. Fixed after review: the remediation regex flagged honest history, inline-ID matching matched prose like "E-mail", and a whitespace regex was quadratic. Added tests for each. Documented rather than changed: empty or truncated replies spend the one revision. Correction made later: the first version of this loop justified a 130 s deadline by the server's 150 s `requestTimeout`, which is wrong (it only bounds receiving the request). The budget is now 180 s, shared by discovery, draft and revision, and excludes a Zetaris query run first (up to 120 s). A cold model load using most of it leaves no time for a revision.
+
+## Final verification of commit f5aea48 (2026-10-23)
+
+Verification only; no features added.
+
+**Mock runtime — scripted responses (not live evidence).** Keyboard-only FE-101 journey on the final build is recorded in the UI row above. After pressing Enter on a case card, focus falls to the page body and Tab restarts from the top (existing behaviour, unchanged).
+
+**Live Meterless Nightshift (separate from the mock evidence).** One request, no retry, existing configuration, default provider, synthetic fixture evidence, `source=fixture`, `explain=true`, case FE-101, local Nightshift runtime reachable. No settings were changed and no secret was printed or found in the response.
+
+| Observation | Result |
+|---|---|
+| HTTP status / narrative status | 200 / ready |
+| Review outcome | accepted on the first draft |
+| Completions | 1 (one review attempt; no revision) |
+| Model reported by the runtime | `nvidia/nemotron-3.5-lightning-30b-a3b` |
+| Elapsed | 71.8 s wall-clock for the whole request (client-timed, includes the discovery check; the 180 s budget was not separately instrumented). A revision would have fitted in the remaining budget but was not needed. |
+| Review checks | all six passed: envelope, citations, inline references, coverage, no named contradiction, no claimed remediation |
+| Cited sources | E-102, E-103, R-02, R-04 |
+| Deterministic result | findings, timeline and rules deep-equal to a fresh local `investigate()` of FE-101 |
+| Analyst notes | one synthetic H-MEM note (`mem-1`) recalled and sent as labelled advice; not cited |
+
+Remaining gaps and limits:
+- **One live sample.** The live revised and returned paths, live rate limiting, a cold model load and a timeout against the 180 s budget have not been exercised; those paths are covered only by mocked tests.
+- **Relevance is not checked.** The live draft cited R-04, a rule belonging to a different scenario (the heartbeat rule for the unknown-cause case). It is a real rule ID, so coverage and citation checks pass; the critic does not judge relevance, and the wording remains advisory.
+- **Not an accuracy claim.** The checks are structural, citation, coverage and named-contradiction only; one accepted live draft does not show factual correctness.
+- **Not tested:** the live run was not displayed in the browser UI, and other browsers, viewports and screen readers remain untested. Live NVIDIA was not run.
