@@ -1,6 +1,6 @@
 # Submission materials (local drafts)
 
-Drafts for the Open Agent Hackathon 2026 Submission Hub. Nothing here has been submitted, published or pushed, no organizer has been contacted, and no license has been added.
+Drafts for the Open Agent Hackathon 2026 Submission Hub. Nothing here has been submitted, published or pushed, and no organizer has been contacted. The project owner selected the MIT License on 23 October 2026; it is added locally.
 
 - **Track:** Wildcard [Tinkerer] (it can be changed until the deadline, rule 3.3).
 - **Deadline:** **27 October 2026, 23:45 UTC.** Hard deadline; registration closes at the same moment. Time zones do not extend it (rule 4.3).
@@ -88,7 +88,9 @@ Pre-recording checks: re-run the official Zetaris preflight and one live join on
 
 ## License
 
-The rules do not require an open-source license: you keep your rights (9.1), and submitting grants the organizer a license to show your demo, screenshots and description (9.2), and sponsor-track submissions grant the sponsor the same non-exclusive promotional license (9.3). **No license has been added and the choice is open.** Rule 6.3 needs a GitHub repository judges can reach; it states no visibility requirement.
+The rules do not require an open-source license: you keep your rights (9.1), and submitting grants the organizer a license to show your demo, screenshots and description (9.2), and sponsor-track submissions grant the sponsor the same non-exclusive promotional license (9.3). **Selected: MIT**, authorized by the project owner on 23 October 2026 and added in the root `LICENSE` file. Third-party components retain their own licenses. Rule 6.3 needs a GitHub repository judges can reach; it states no visibility requirement.
+
+Options considered before the decision:
 
 | Option | What it allows | Trade-offs |
 |---|---|---|

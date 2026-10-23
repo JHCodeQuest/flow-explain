@@ -43,7 +43,7 @@ Scope: what would be **pushed** (the 17 unpushed commits on `main`, the whole hi
 Upload only: `artifacts/flowexplain-demo.mp4`, optionally `flowexplain-demo.srt` and `flowexplain-demo-narration.md`, and `artifacts/deck-output/FlowExplain-hackathon-v3.pptx`. The video uses a synthetic voice (Microsoft Zira); disclose it where the event allows. Do not upload `flowexplain-demo-take.json` (not needed), the other screenshots, `deck-build/`, or the folder itself.
 
 ## Decisions before pushing or uploading
-1. License: choose one, or knowingly publish without one.
+1. License: resolved on 23 October 2026. The project owner selected MIT, added locally in the root `LICENSE`. The earlier findings above describe the review-time state. Publishing approval remains separate.
 2. Publish the 17 commits and all documents to the public repository now, or review them first.
 3. Commit identity going forward (personal address or GitHub noreply).
 4. Confirm the upload set above.

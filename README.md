@@ -91,6 +91,10 @@ npm run demo:loop        # http://127.0.0.1:4318, mock runtime (run build first)
 - `npm run demo:loop` is labelled **Mock runtime - scripted responses**. It is not a live model. Tick the explanation box and investigate: FE-102 is accepted on the first draft, FE-101 and FE-104 are accepted after one revision, and FE-103 is not accepted, which returns the deterministic findings with a fixed reason.
 - The mock only demonstrates the loop's branches. It says nothing about live model quality.
 
+## License
+
+FlowExplain's original code and associated documentation are licensed under the [MIT License](LICENSE). Third-party components retain their own licenses.
+
 ## Checks and limits
 
 ```powershell
