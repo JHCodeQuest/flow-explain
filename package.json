@@ -7,7 +7,8 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "start": "node --experimental-transform-types src/server/main.ts",
-    "test": "node --experimental-transform-types --test tests/*.test.ts"
+    "test": "node --experimental-transform-types --test tests/*.test.ts",
+    "demo:loop": "node --experimental-transform-types scripts/demo-feedback-loop.ts"
   },
   "engines": {
     "node": ">=24"

@@ -143,6 +143,26 @@ function renderLessons(host: HTMLElement, result: Investigation): void {
     append(note, el('p', '', lesson.text), el('p', 'lesson-provenance', `${lesson.id} · From ${lesson.sourceCaseId} · ${stamp(lesson.createdAt)}`)); host.append(note);
   }
 }
+/** Fixed-template checks only: no model text, draft or reasoning is rendered. */
+function renderReview(review: NonNullable<Investigation['narrative']['review']>): HTMLElement {
+  const panel = el('section', 'review-panel');
+  panel.setAttribute('aria-label', 'Explanation review');
+  const outcome = { accepted: 'Accepted on the first draft', revised: 'Accepted after one revision', returned: 'Not accepted: deterministic findings shown' }[review.outcome];
+  append(panel, el('p', 'eyebrow', 'EXPLANATION REVIEW'), el('p', 'review-outcome review-' + review.outcome, outcome));
+  panel.append(el('p', 'review-caption', 'Structural, citation, coverage and named-contradiction checks. They do not prove the wording is factually correct. The findings below are unchanged.'));
+  if (review.reason) panel.append(el('p', 'provider-warning', review.reason));
+  for (const attempt of review.attempts) {
+    const block = el('div', 'review-attempt');
+    block.append(el('h4', '', (attempt.n === 1 ? 'First draft' : 'Revision') + ' · ' + (attempt.passed ? 'all checks passed' : 'checks failed')));
+    const list = el('ul', 'review-checks');
+    for (const check of attempt.checks) {
+      const mark = check.status === 'pass' ? '✓ Pass' : check.status === 'fail' ? '✗ Fail' : '– Not run';
+      list.append(el('li', 'review-check review-' + check.status, mark + ' · ' + check.label + (check.refs?.length ? ' (' + check.refs.join(', ') + ')' : '')));
+    }
+    block.append(list); panel.append(block);
+  }
+  return panel;
+}
 function renderInvestigation(result: Investigation): void {
   detail.replaceChildren();
   const header = el('div', 'detail-header');
@@ -157,6 +177,7 @@ function renderInvestigation(result: Investigation): void {
   if (result.narrative.status === 'unavailable') summary.append(el('p', 'provider-warning', provider + ' explanation unavailable. ' + (result.narrative.reason || 'The deterministic findings remain available.')));
   if (result.narrative.status === 'not-requested') summary.append(el('p', 'summary-caption', 'Deterministic analysis · ' + provider + ' explanation not requested'));
   detail.append(summary);
+  if (result.narrative.review) detail.append(renderReview(result.narrative.review));
   const findings = el('section', 'detail-section');
   append(findings, el('h3', 'section-heading', 'What the evidence tells us'));
   if (!result.findings.length) findings.append(el('p', 'muted', 'No findings were returned for this case.'));
