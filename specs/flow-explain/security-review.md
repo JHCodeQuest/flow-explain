@@ -1,6 +1,8 @@
 # Release security review (2026-10-23)
 
-Scope: what would be **pushed** (the 17 unpushed commits on `main`, the whole history) and what would be **uploaded** (the demo video, the deck, and supporting files). Nothing was pushed, uploaded or changed on GitHub. Two read-only GitHub queries were made (repository details and the remote `main` hash). This is an AI-assisted review of this repository and these files, not an independent audit or a security guarantee.
+Scope: what would be **pushed** (the 17 unpushed commits on `main`, the whole history) and what would be **uploaded** (the demo video, the deck, and supporting files). Nothing was pushed, uploaded or changed on GitHub during the review. Two read-only GitHub queries were made (repository details and the remote `main` hash). This is an AI-assisted review of this repository and these files, not an independent audit or a security guarantee.
+
+**Status update (after the review, 2026-10-23).** The project owner added the MIT license (`81dca89`) and pushed `main` to the public origin (`7feb021..81dca89`, 19 commits, a plain fast-forward). Decisions 1 and 2 below are resolved; decisions 3 and 4 remain open. The review text below is the review-time record and describes what was true before the push. The video and deck have not been uploaded.
 
 **Verdict.** No blocking security finding. Before pushing, three decisions are yours (public visibility and license, the commit identity, and which files to upload); they are listed at the end.
 
@@ -43,7 +45,7 @@ Scope: what would be **pushed** (the 17 unpushed commits on `main`, the whole hi
 Upload only: `artifacts/flowexplain-demo.mp4`, optionally `flowexplain-demo.srt` and `flowexplain-demo-narration.md`, and `artifacts/deck-output/FlowExplain-hackathon-v3.pptx`. The video uses a synthetic voice (Microsoft Zira); disclose it where the event allows. Do not upload `flowexplain-demo-take.json` (not needed), the other screenshots, `deck-build/`, or the folder itself.
 
 ## Decisions before pushing or uploading
-1. License: resolved on 23 October 2026. The project owner selected MIT, added locally in the root `LICENSE`. The earlier findings above describe the review-time state. Publishing approval remains separate.
-2. Publish the 17 commits and all documents to the public repository now, or review them first.
+1. License: resolved on 23 October 2026. The project owner selected MIT; the root `LICENSE` is in the public repository. The earlier findings above describe the review-time state.
+2. Resolved on 23 October 2026: the project owner instructed the push, and `main` was pushed to the public origin (19 commits, including the license commit).
 3. Commit identity going forward (personal address or GitHub noreply).
 4. Confirm the upload set above.

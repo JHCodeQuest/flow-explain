@@ -1,6 +1,6 @@
 # Submission materials (local drafts)
 
-Drafts for the Open Agent Hackathon 2026 Submission Hub. Nothing here has been submitted, published or pushed, and no organizer has been contacted. The project owner selected the MIT License on 23 October 2026; it is added locally.
+Drafts for the Open Agent Hackathon 2026 Submission Hub. Nothing here has been submitted to the Submission Hub, the video and deck have not been uploaded, and no organizer has been contacted. The repository, including these drafts, was pushed to its public GitHub origin on 23 October 2026 (up to commit `81dca89`) and carries the MIT License chosen by the project owner.
 
 - **Track:** Wildcard [Tinkerer] (it can be changed until the deadline, rule 3.3).
 - **Deadline:** **27 October 2026, 23:45 UTC.** Hard deadline; registration closes at the same moment. Time zones do not extend it (rule 4.3).
@@ -22,7 +22,7 @@ The pre-existing prototype (commit `7feb021`, 20 October 2026) received Codex as
 |---|---|---|
 | 6.1 | Demo video, 1-4 minutes, showing Zetaris and Meterless integration | Recorded locally on 2026-10-23: `artifacts/flowexplain-demo.mp4` (3:51, captions and a synthetic voice-over, ignored by git, not uploaded). The narration is in `artifacts/flowexplain-demo-narration.md`. See `plan.md`, "Demo recording (2026-10-23)". |
 | 6.2 | Slide deck | Six-slide content in `deck.md`; deck not built. |
-| 6.3 | GitHub repository with all source and a README (setup, usage, dependencies) | README exists. The commits are local only; no push has been made and repository visibility is not decided. |
+| 6.3 | GitHub repository with all source and a README (setup, usage, dependencies) | README and MIT `LICENSE` exist. The repository is public at https://github.com/JHCodeQuest/flow-explain, pushed on 23 October 2026 (`81dca89`), so judges can reach it. Later commits still need their own push. |
 | 6.4 | Written explanation of Zetaris, Meterless, tooling and NVIDIA use, and what is unique | Drafted below. |
 | 5.4 | Pre-existing product code declared in the submission form | Text below. |
 | Hub | Track, description up to 2,000 characters, video link or upload | Description drafted. The rest of the form is behind sign-in and has not been read. |
@@ -88,7 +88,7 @@ Pre-recording checks: re-run the official Zetaris preflight and one live join on
 
 ## License
 
-The rules do not require an open-source license: you keep your rights (9.1), and submitting grants the organizer a license to show your demo, screenshots and description (9.2), and sponsor-track submissions grant the sponsor the same non-exclusive promotional license (9.3). **Selected: MIT**, authorized by the project owner on 23 October 2026 and added in the root `LICENSE` file. Third-party components retain their own licenses. Rule 6.3 needs a GitHub repository judges can reach; it states no visibility requirement.
+The rules do not require an open-source license: you keep your rights (9.1), and submitting grants the organizer a license to show your demo, screenshots and description (9.2), and sponsor-track submissions grant the sponsor the same non-exclusive promotional license (9.3). **Selected: MIT**, authorized by the project owner on 23 October 2026 and added in the root `LICENSE` file, which is in the public repository. Third-party components retain their own licenses. Rule 6.3 needs a GitHub repository judges can reach; it states no visibility requirement.
 
 Options considered before the decision:
 

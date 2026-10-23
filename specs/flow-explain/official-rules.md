@@ -42,7 +42,7 @@ Status as of the submission-materials update (2026-10-23).
 3. **Slide deck (6.2):** outline drafted in `submission.md`; deck not built.
 4. **Written explanation (6.4):** drafted in `submission.md`.
 5. **Pre-existing declaration (5.4):** form-ready text drafted in `submission.md`; it still has to be entered in the form, which has not been read.
-6. **License:** addressed. No license is required by the rules. On 23 October 2026, the project owner selected MIT; the root `LICENSE` file records it. This local change has not been pushed.
+6. **License:** addressed. No license is required by the rules. On 23 October 2026, the project owner selected MIT; the root `LICENSE` file records it. The license was pushed to the public repository on 23 October 2026 (`81dca89`).
 7. **Stale rules note:** removed from `submission.md`.
 8. **Wildcard scoring wording:** unchanged risk. Zetaris and H-MEM are pre-existing and unmodified, so the new sponsor-tech work is Nightshift and the loop. The track can be changed until the deadline (rule 3.3).
 9. **Deadline:** added to `submission.md`: 27 October 2026, 23:45 UTC.

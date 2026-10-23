@@ -1,6 +1,6 @@
 # Implementation plan and verification
 
-Reading guide: sections are chronological and keep their original dated evidence. Counts and statements in an earlier section describe that point in time; later sections supersede them. The original prototype is `7feb021` (2026-10-20), the Nightshift provider is 2026-10-22, and the feedback loop and its verification are 2026-10-23 (see `git log`).
+Reading guide: sections are chronological and keep their original dated evidence. Counts and statements in an earlier section describe that point in time; later sections supersede them. The original prototype is `7feb021` (2026-10-20), the Nightshift provider is 2026-10-22, and the feedback loop and its verification are 2026-10-23 (see `git log`). Phrases such as "local only" or "not pushed" in earlier sections were true when written; the repository was pushed to its public origin on 2026-10-23 (see the last section).
 
 T-01 verified: pure evidence engine and four synthetic scenarios (AC-01, AC-02).
 T-02 verified: loopback API, separate H-MEM store, opt-in NVIDIA and read-only Zetaris snapshot adapter (AC-03, AC-04, AC-05, AC-07).
@@ -161,3 +161,9 @@ Limitations:
 - The live app window displays the previous result while a new request runs, so during the Nightshift wait the screen still shows the earlier Zetaris label. This is real application behaviour.
 - Audio quality and pacing were not reviewed by a person; the frame checks were done by sampling, not by watching the whole video.
 - Spoken figures (the durations and the trimmed seconds) were computed from the take's data, and the outcome and check results were asserted against it before the narration was built.
+
+## Publication status (2026-10-23)
+
+- **Pushed:** `main` was pushed to the public GitHub origin on the project owner's instruction, a plain fast-forward from `7feb021` to `81dca89` (19 commits). The remote head matched the local head afterwards, and GitHub reports the repository as public with the MIT License.
+- **Before the push:** the release security review (`security-review.md`) found no blocking issue; the newest commit (the MIT license) was reviewed and scanned separately. No secrets, local paths or personal data were found in the pushed content. The author email in commit metadata was already public through `7feb021`.
+- **Not done:** the demo video and deck have not been uploaded, and nothing has been submitted to the hackathon. Commits made after `81dca89`, including the wording corrections that record this status, are local until pushed.
