@@ -96,3 +96,19 @@ Remaining gaps and limits:
 - **Relevance is not checked.** The live draft cited R-04, a rule belonging to a different scenario (the heartbeat rule for the unknown-cause case). It is a real rule ID, so coverage and citation checks pass; the critic does not judge relevance, and the wording remains advisory.
 - **Not an accuracy claim.** The checks are structural, citation, coverage and named-contradiction only; one accepted live draft does not show factual correctness.
 - **Not tested:** the live run was not displayed in the browser UI, and other browsers, viewports and screen readers remain untested. Live NVIDIA was not run.
+
+## Submission preparation checks (2026-10-23)
+
+Documentation and verification only; no features added. Checked state: commit `6dc4bfd` (submission drafts, declaration, offline route). Nothing was pushed, published or submitted.
+
+**Full-history secret scan.**
+- gitleaks 8.30.1 over all refs: 11 commits, about 243 KB of history, redacted output, no findings.
+- Exact-value search: the five distinct secret-looking values (names containing key, token, secret or password; at least 8 characters; not placeholders) in the project and shared environment files were searched for across all 11 commits and across 69 working-tree files, including ignored files, `dist/` and `artifacts/` text, excluding `node_modules` and `.git`. No history file matched. The only working-tree match is the local `.env.local`, which is one of the value sources, so it matches itself. It is gitignored and no commit has ever touched it. Values were never printed.
+- Coverage limits: pattern and exact-string matching cannot find encoded, truncated or derived secrets, or values not present in those two environment files. Screenshots and other binary files were not inspected, so `artifacts/` images could show something sensitive; do not publish that folder. Unreachable objects and reflogs were not scanned, and neither were `node_modules` or the sibling repositories. Process environment variables were not searched. The local `.env.local` does contain a `METERLESS_RUNTIME_TOKEN` entry, which the app ignores; do not zip or share this folder as is.
+
+**Clean-checkout reproducibility.** A fresh `git clone` of the local repository (which includes the unpushed commits) into an empty directory, leaving the working copy untouched:
+- `npm ci` (0 vulnerabilities reported), `npm run build` and `npm run typecheck` passed. The built bundle file names are identical to the working copy's.
+- `npm test`: 44 of 44. `python tests/test-zetaris.py`: 7 of 7.
+- `npm start` with no credentials and no sibling checkouts: fixture investigations of FE-101 and FE-104 returned findings `F-routing` and `F-unknown`. The status reported H-MEM, Zetaris and the explanation as not configured. Requesting an explanation returned an unavailable narrative with findings intact. Selecting Zetaris failed with HTTP 503 and no fallback.
+- `npm run demo:loop` (**Mock runtime - scripted responses**): FE-102 accepted, FE-101 revised, FE-103 returned, FE-104 revised.
+- Limits: Windows 11, Node v24.21.0 and Python 3.11.9 only. `npm ci` finished in about 2 s, which suggests the local package cache was used, so a cold registry download was not independently verified. The browser UI was not re-driven in the clone; the HTTP API was.
