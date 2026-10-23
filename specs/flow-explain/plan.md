@@ -112,3 +112,23 @@ Documentation and verification only; no features added. Checked state: commit `6
 - `npm start` with no credentials and no sibling checkouts: fixture investigations of FE-101 and FE-104 returned findings `F-routing` and `F-unknown`. The status reported H-MEM, Zetaris and the explanation as not configured. Requesting an explanation returned an unavailable narrative with findings intact. Selecting Zetaris failed with HTTP 503 and no fallback.
 - `npm run demo:loop` (**Mock runtime - scripted responses**): FE-102 accepted, FE-101 revised, FE-103 returned, FE-104 revised.
 - Limits: Windows 11, Node v24.21.0 and Python 3.11.9 only. `npm ci` finished in about 2 s, which suggests the local package cache was used, so a cold registry download was not independently verified. The browser UI was not re-driven in the clone; the HTTP API was.
+
+## Pre-recording Zetaris verification (2026-10-23)
+
+Verification only; no code, database object or configuration was changed. Existing configuration was used and no credential, key or connection detail was printed.
+
+| Step | Time (UTC) | Result |
+|---|---|---|
+| Official read-only preflight (`getting-started/scripts/preflight.py`) | 2026-10-23 07:36 | **READY.** Environment file found; the API key, username, password and user agent are present (presence only, never printed). REST datasources call: HTTP 200, 0 listed. REST `SELECT 1`: pass. Informational: Lightning databases `NY_TAXI` and `TPCDS_DB`; no USL namespaces. |
+| App adapter, live, case FE-101 (`loadZetarisDataset`, the existing fixed read-only join) | 2026-10-23 07:38 | **Pass**, 23.3 s. Returned 1 case (FE-101), 3 events (E-101, E-102, E-103) and 4 rules (R-01 to R-04), snapshot 22 Oct 2026 12:00 UTC. Every returned row is deep-equal to the synthetic fixture; the adapter also enforces the exact match itself. |
+| Browser, real server, source set to Zetaris, FE-101, explanation not requested | about 07:40 | **Pass**, 22.3 s wait. Label "Zetaris read-only join of synthetic snapshots" with the 22 Oct 12:00 UTC snapshot; finding "The finance handoff failed" citing E-102, E-103 and R-02; timeline E-101 to E-103; rules R-01 to R-04. Screenshot in the ignored `artifacts/zetaris-live-fe101.png`. |
+
+Source: the existing local Zetaris REST instance named in the project's ignored configuration, through the official Python REST helper.
+
+Limitations:
+- **One run, one case.** FE-102 to FE-104 were not run live this session, and the run is a point-in-time check on 2026-10-23.
+- **Not a registered-source integration.** The instance lists no registered datasources. The adapter sends the three checked-in synthetic snapshots as inline SQL literals in one fixed read-only join and requires the same rows back. This verifies the REST channel and the join, not federation over registered data.
+- **Read-only evidence.** The preflight and the adapter make no writes or schema changes by design; this run did not independently audit the instance for changes.
+- **Pre-existing component.** The Zetaris adapter is part of the declared pre-existing prototype and was not modified in the window.
+- Elapsed times are wall-clock from this machine and include process start-up.
+- The explanation (Nightshift) was deliberately not requested in this check.

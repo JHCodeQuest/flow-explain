@@ -66,6 +66,8 @@ Intended track: Wildcard [Tinkerer], which extends an existing project and is sc
 
 **Pre-existing prototype** (commit `7feb021`, 20 Oct 2026, before the window): the deterministic evidence engine and four synthetic scenarios, the loopback API and its security boundary, the read-only Zetaris snapshot join, H-MEM analyst notes, the direct NVIDIA explanation adapter (opt-in) and the interface.
 
+**Development tooling:** the pre-existing prototype received Codex assistance; work in the window used Claude Code. Commit trailers are not a complete record of tooling.
+
 **Hackathon work** (22-23 Oct 2026):
 - Meterless Nightshift as the default explanation route, with authenticated discovery, explicit provider selection and no fallback (`a5b92d1`, `05b9724`, `42263c1`).
 - The bounded draft, check and revise loop, the Review panel in the UI, the labelled mock-runtime demo and their tests (`a813a26` to `f5aea48`).

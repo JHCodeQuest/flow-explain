@@ -14,13 +14,13 @@ Drafts for the Open Agent Hackathon 2026 Submission Hub. Nothing here has been s
 
 ## Development tooling statement (truthful, for the form)
 
-Claude Code was used for development. The repository history carries a Claude co-author trailer on all 12 commits made inside the build window (22 and 23 October 2026). The earlier prototype commit `7feb021` (20 October 2026) carries no such trailer and its tooling is not recorded in this repository; the project owner should confirm what to say about it. This submission does not claim that Cursor was used.
+The pre-existing prototype (commit `7feb021`, 20 October 2026) received Codex assistance, as reported by the project owner. Development in the build window (22 and 23 October 2026) used Claude Code. Commit trailers are not a complete tooling record: the 12 in-window commits carry a Claude co-author trailer and the prototype commit carries none, and neither says what other tools or manual work were involved. This submission does not claim that Cursor was used.
 
 ## Requirement checklist
 
 | Rule | Asset | State |
 |---|---|---|
-| 6.1 | Demo video, 1-4 minutes, showing Zetaris and Meterless integration | Script below; not recorded. Needs the pre-recording checks. |
+| 6.1 | Demo video, 1-4 minutes, showing Zetaris and Meterless integration | Script below; not recorded. The Zetaris pre-recording verification passed on 2026-10-23 (see `plan.md`); re-run it on recording day. |
 | 6.2 | Slide deck | Outline below; not built. |
 | 6.3 | GitHub repository with all source and a README (setup, usage, dependencies) | README exists. The commits are local only; no push has been made and repository visibility is not decided. |
 | 6.4 | Written explanation of Zetaris, Meterless, tooling and NVIDIA use, and what is unique | Drafted below. |
@@ -44,7 +44,7 @@ Judges can run it offline from fixtures and the mock demo (see README).
 
 ## Pre-existing work declaration (text for the submission form)
 
-> **Pre-existing component:** the FlowExplain local prototype, commit `7feb021`, made on 20 October 2026, before the 22 October 00:00 UTC build window. It contains the deterministic evidence engine and four synthetic scenarios, the loopback API and its security boundary, a read-only Zetaris REST join of synthetic snapshots, H-MEM analyst notes, a direct NVIDIA explanation adapter and the web interface. There is no other pre-existing product code. Open-source development dependencies: Vite, TypeScript and Node type definitions.
+> **Pre-existing component:** the FlowExplain local prototype, commit `7feb021`, made on 20 October 2026, before the 22 October 00:00 UTC build window. It contains the deterministic evidence engine and four synthetic scenarios, the loopback API and its security boundary, a read-only Zetaris REST join of synthetic snapshots, H-MEM analyst notes, a direct NVIDIA explanation adapter and the web interface. The prototype received Codex assistance; work in the window was developed with Claude Code. There is no other pre-existing product code. Open-source development dependencies: Vite, TypeScript and Node type definitions.
 >
 > **Built in the window (22-23 October 2026):** Meterless Nightshift as the default explanation route; a bounded draft, check and revise feedback loop with a deterministic critic; the Review panel; a labelled mock-runtime demo; tests; verification records; and these submission materials. The evidence engine, the H-MEM and Zetaris adapters and the fixture data were not modified. The direct NVIDIA adapter was refactored to share the new prompt and loop.
 >
@@ -52,11 +52,11 @@ Judges can run it offline from fixtures and the mock demo (see README).
 
 ## Written explanation of sponsor technology use (rule 6.4)
 
-**Zetaris.** Selecting the Zetaris source sends one fixed, read-only SQL join over three synthetic snapshot collections (cases, events, rules) through the official Python REST helper. The returned rows must match the supplied snapshots exactly or the investigation fails visibly. There is no fallback to fixtures, no writes, no schema changes and no arbitrary SQL. The data are checked-in synthetic snapshots, not registered production sources. This integration pre-dates the window and was not changed in it. Its last recorded live verification is in `plan.md` (AC-03, before the window); it should be re-run before recording.
+**Zetaris.** Selecting the Zetaris source sends one fixed, read-only SQL join over three synthetic snapshot collections (cases, events, rules) through the official Python REST helper. The returned rows must match the supplied snapshots exactly or the investigation fails visibly. There is no fallback to fixtures, no writes, no schema changes and no arbitrary SQL. The data are checked-in synthetic snapshots, not registered production sources. This integration pre-dates the window and was not changed in it. It was verified live on 23 October 2026 (official read-only preflight READY, then a live FE-101 join that returned the expected case, three events and four rules, shown in the browser); the record is in `plan.md`. Re-run it on recording day.
 
 **Meterless.** Two parts. H-MEM (pre-existing, not modified): analyst corrections are stored with provenance through the Meterless H-MEM memory service, loaded from the official checkout into a separate local store. They are recalled across restarts for matching scenarios and shown separately as unverified advice; they never change a finding and can never be cited. A live run on 23 October recalled a stored synthetic note. Nightshift (new in the window): Meterless Nightshift is the default explanation route, with an authenticated discovery check that tells a rejected token from an offline runtime. The provider is chosen explicitly and never falls back.
 
-**Development tooling.** Claude Code was used for development, as stated above. Cursor use is not claimed; see the recorded rule conflict.
+**Development tooling.** The pre-existing prototype received Codex assistance; development in the window used Claude Code, as stated above. Cursor use is not claimed; see the recorded rule conflict.
 
 **NVIDIA.** On two live runs (22 and 23 October) the Nightshift runtime reported that `nvidia/nemotron-3.5-lightning-30b-a3b` answered. Nightshift chose that model; the app did not. A direct NVIDIA adapter exists as an explicit opt-in; it pre-dates the window, was refactored in it and has only mocked tests since.
 
@@ -72,7 +72,7 @@ Ten slides. Use curated screenshots only (for example `artifacts/loop2-*.png` an
 2. **Problem and users.** Support analysts explaining why an approval stalled, from fragmented records. Synthetic data.
 3. **Solution.** Screenshot of cited findings, timeline and next check.
 4. **Workflow and architecture.** Diagram: fixtures or Zetaris, then deterministic rules and findings, then H-MEM notes (advisory), then the Nightshift draft, then the critic, then accept, revise once, or return.
-5. **Technical stack.** TypeScript, Node, Vite, Python REST helper, Meterless H-MEM and Nightshift, reported NVIDIA model, Claude Code for development.
+5. **Technical stack.** TypeScript, Node, Vite, Python REST helper, Meterless H-MEM and Nightshift, reported NVIDIA model; Codex assistance on the prototype and Claude Code in the window for development.
 6. **How Zetaris is used.** The fixed read-only join, the exact-match check and no fallback; synthetic snapshots; pre-existing.
 7. **How Meterless is used.** H-MEM notes (pre-existing) and Nightshift (new), with the discovery check and explicit provider.
 8. **Feedback loop.** Two clearly separate panels. Left, titled "Live": the recorded Nightshift result. Right, titled "Mock runtime - scripted responses": the revise and return branches.
@@ -85,7 +85,7 @@ Rule for live segments: do not read from this script. Narrate only what appears 
 
 | Time | Segment | On screen | What to say |
 |---|---|---|---|
-| 0:00-0:20 | Problem | Case queue | "Analysts must explain why an approval stalled from fragmented records. Synthetic data. This extends a prototype from before the window; the README lists what is old and new. Built with Claude Code." |
+| 0:00-0:20 | Problem | Case queue | "Analysts must explain why an approval stalled from fragmented records. Synthetic data. This extends a prototype from before the window; the README lists what is old and new. Developed with Codex assistance before the window and Claude Code in it." |
 | 0:20-0:50 | Evidence | Fixture investigation of FE-101: findings, timeline, citations | Findings come from deterministic rules and cite events and rules. Describe what is on screen. |
 | 0:50-1:30 | **Zetaris** | Switch the source to Zetaris and investigate. Caption "Live" | Explain the integration: one fixed read-only join over three synthetic snapshots through the REST helper, exact-match check, no fallback. Narrate what appears. If it fails, say the reason shown, do not retry on camera, and show the dated record as a record, not as live. |
 | 1:30-1:55 | **Meterless H-MEM** | Save an analyst note, reinvestigate. Caption "Live" | The note is stored in Meterless H-MEM, recalled separately as unverified advice, and does not change the findings. |
@@ -95,7 +95,7 @@ Rule for live segments: do not read from this script. Narrate only what appears 
 
 If it runs long, trim the fixture segment, not the Zetaris or Meterless parts.
 
-Pre-recording checks: run the official Zetaris preflight and one live join; confirm the Nightshift runtime is reachable; close terminals and editors that show environment files; do not show the `artifacts/` folder. Do not pre-decide outcomes for the live segments.
+Pre-recording checks: re-run the official Zetaris preflight and one live join on recording day (they passed on 23 October); confirm the Nightshift runtime is reachable; close terminals and editors that show environment files; do not show the `artifacts/` folder. Do not pre-decide outcomes for the live segments.
 
 ## License
 

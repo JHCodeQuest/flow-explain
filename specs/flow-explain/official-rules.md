@@ -37,7 +37,7 @@ The project owner reports that the organizer later announced Cursor is optional 
 
 ## Discrepancies found on the first comparison, and their status
 Status as of the submission-materials update (2026-10-23).
-1. **Cursor (5.1, 6.4):** open conflict, recorded above. The materials state that Claude Code was used and do not claim Cursor.
+1. **Cursor (5.1, 6.4):** open conflict, recorded above. The materials state that the prototype received Codex assistance and that work in the window used Claude Code, and do not claim Cursor.
 2. **Video script (6.1):** addressed. Zetaris and Meterless (H-MEM and Nightshift) are now separate, explained segments.
 3. **Slide deck (6.2):** outline drafted in `submission.md`; deck not built.
 4. **Written explanation (6.4):** drafted in `submission.md`.
