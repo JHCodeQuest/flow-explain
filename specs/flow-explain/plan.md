@@ -46,3 +46,25 @@ New hackathon work extending the declared pre-existing prototype (the local appr
 - Defect found live: the `meterless/auto` route returned HTTP 502 `empty_response` for the real prompt at `max_tokens` 32 and 512 even with thinking disabled; the routed model reasons (about 2000 completion tokens here). Budget raised to 4096.
 - Live check (2026-10-22, synthetic FE-101): discovery online, wrong token unauthorized, explanation ready with four valid citations; model reported by the runtime: `nvidia/nemotron-3.5-lightning-30b-a3b`.
 - Limits: local only, not pushed or published; the routed model is chosen by Nightshift, so hosted routing is outside this app's control.
+
+## Hackathon extension: bounded explanation feedback loop (AC-08)
+
+New hackathon work on the declared prototype. One loop in `src/integrations/review.ts`; both providers route through it. Evidence engine, H-MEM and Zetaris are unchanged.
+
+The critic is deterministic and narrow: structural, citation, coverage and named-contradiction checks (plus a no-claimed-remediation and a verbatim-note-copy check). It does not prove factual correctness; wording-based regexes can over- or under-trigger. The same checks must pass again after the single revision.
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| AC-08 accepted / revised / returned | Met (mocked) | `tests/review.test.ts` scripted completer: 1, 2 and 2 completions, no third call. `tests/demo-loop.test.ts` over loopback HTTP: FE-102 accepted, FE-101 and FE-104 revised, FE-103 returned. |
+| Same checks after revision | Met | Revised attempt asserts all seven checks pass; a revision with an invented citation is returned. |
+| Transport failures not revised | Met | ProviderError and timeout produce one call and `returned`. |
+| Findings authoritative, notes advisory | Met | `deepEqual` of findings before and after, in unit and HTTP tests; `mem-*` fails `citations`; notes change only the `notes` check. |
+| Provider selection, no fallback, secrets | Met | Global `fetch` spy sees zero stray calls; NVIDIA and Nightshift tests hit only their own endpoint; response scan finds no token, failed-draft text or `reasoning_content` sentinel. |
+| Limits | Met | At most 2 completions, 1 discovery, shared 130 s deadline (+10 s discovery); signal and fake-clock tests. No new request fields (`review:false` still 400). |
+| UI review panel | Partly verified | `renderReview` uses textContent only (no innerHTML in source or bundle); build and typecheck pass; demo API output inspected via HTTP. **Browser checks (keyboard, narrow viewport, screenshots) were not completed**: the Chrome extension was not connected. |
+
+Checks run: `npm test` 41/41, `python tests/test-zetaris.py` 7/7, `npm run typecheck` and `npm run build` pass.
+
+Demo: `npm run demo:loop` serves the real app against a scripted loopback runtime labelled **Mock runtime — scripted responses**. It is a mock, not live provider evidence, and there is no production demo-mode switch. No live Nightshift or NVIDIA run was made for this extension; the earlier 2026-10-22 live check predates the loop.
+
+Independent review (a separate AI agent, read-only; not a security guarantee) found no blocking bug. Fixed after review: the remediation regex flagged honest history, inline-ID matching matched prose like "E-mail", and a whitespace regex was quadratic. Added tests for each. Documented rather than changed: a cold Nightshift model load can now exceed the 130 s shared deadline (previously 180 s per call) and is returned, not revised; the deadline excludes a Zetaris query run first (up to 120 s); empty or truncated replies spend the one revision.

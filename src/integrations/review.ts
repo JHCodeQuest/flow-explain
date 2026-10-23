@@ -25,7 +25,9 @@ const CONTRADICTIONS: Record<string, RegExp[]> = {
   "F-unknown": [/\b(?:caused by|root cause|because|due to|as a result of)\b/i],
 };
 const HEDGE = /\b(?:unknown|insufficient|not enough|cannot|can't|does not establish|do not establish|unclear|no evidence)\b/i;
-const CHANGE = /\b(?:has|have|had|was|were|been|i|we)\s+(?:been\s+)?(?:fixed|restarted|retried|resubmitted|escalated|reassigned|updated|resolved|re-?run|reset)\b/i;
+// Only claims by the tool/author ("we retried", "has been resubmitted"); past events recorded in the evidence may be described.
+const CHANGE = /\b(?:(?:i|we)\s+(?:have\s+|had\s+)?|(?:has|have)\s+been\s+)(?:fixed|restarted|retried|resubmitted|escalated|reassigned|reset|re-?run)\b/i;
+const REF = /\b(?:[ER]-\d[A-Za-z0-9_]*(?:-[A-Za-z0-9_]+)*|mem-[A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(?![A-Za-z0-9_-])/gi;
 const words = (text: string) => text.toLowerCase().match(/[a-z0-9']+/g) ?? [];
 
 function copiesNote(summary: string, notes: string[]): boolean {
@@ -47,14 +49,14 @@ export function critique(result: Investigation, content: unknown, allowed: Set<s
   let summary = ""; let citations: string[] = [];
   let parsed: { summary?: unknown; citations?: unknown } | undefined;
   try {
-    if (typeof content === "string" && content.length <= 10_000) parsed = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ""));
+    if (typeof content === "string" && content.length <= 10_000) parsed = JSON.parse(content.trim().replace(/^```(?:json)?\s*|```$/g, ""));
   } catch { /* envelope fails below */ }
   const ok = !!parsed && typeof parsed.summary === "string" && parsed.summary.length >= 10 && parsed.summary.length <= 900 && Array.isArray(parsed.citations) && parsed.citations.length >= 1 && parsed.citations.length <= 12 && parsed.citations.every((c) => typeof c === "string");
   set("envelope", ok);
   if (ok) {
     summary = parsed!.summary as string; citations = parsed!.citations as string[];
     set("citations", citations.every((c) => allowed.has(c)));
-    const inline = summary.match(/\b(?:E-|R-|mem-)[A-Za-z0-9_-]+\b/g) ?? [];
+    const inline = summary.match(REF) ?? [];
     set("inline", inline.every((id) => allowed.has(id) && citations.includes(id)));
     const missing = result.findings.flatMap((f) => [...f.evidenceIds, ...f.ruleIds]).filter((id) => !citations.includes(id));
     set("coverage", !missing.length, missing);

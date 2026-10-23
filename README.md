@@ -41,6 +41,18 @@ The app works with the sibling checkout layout used during setup. To change it, 
 - **H-MEM:** analyst notes use the actual Meterless `MemoryStoreService`, retrieval and trust ledger. The separate local store preserves source-case and correction provenance. Matching notes survive restarts and remain labelled unverified advice. Identical notes reuse their memory ID. No general notebook or other-app memories are imported.
 - **Meterless Nightshift:** check **Add Meterless Nightshift explanation** and investigate to send the selected synthetic evidence and relevant bounded analyst notes to the local Nightshift runtime (`POST /v1/chat/completions` with `Authorization: Bearer`, `meterless-app: flow-explain`, `meterless-scope: user`, `meterless/auto`). Before generating, the server checks authenticated `GET /v1/models`: 401/403 reports a rejected token, anything else unreachable reports the runtime as not reachable, and no generation is attempted. The requested budget is 4096 tokens because the routed model still reasons and returned an empty reply at 32 and 512; a result names the model that actually answered. A routed model may itself be a hosted one, so the runtime's own routing and privacy settings apply. `FLOW_EXPLAIN_PROVIDER=nvidia` instead selects the older direct NVIDIA adapter (hosted development endpoint); there is no automatic fallback between the two. Explanations are opt-in per investigation and subject to account limits. The model has no tools and cannot modify workflows. Unknown citations or invalid responses are rejected; deterministic findings remain visible. Even valid citations do not prove every sentence is correct. Treat wording as advisory.
 
+## Explanation review loop
+
+When you request a provider explanation, the draft is checked before it is shown. A deterministic critic (no model call) runs: valid envelope, known citations, matching inline references, coverage of every evidence and rule ID the findings use, named contradictions of the findings (for example calling a completed manager approval pending), no claimed remediation, and no verbatim copy of analyst notes. These are structural, citation, coverage and named-contradiction checks. They do not prove the wording is factually correct.
+
+- Pass on the first draft: **Accepted**.
+- Content failure: one revision to the same provider, carrying only the previous draft as data and fixed failure codes. The same checks must pass again: **Accepted after one revision**.
+- Second failure, or no time left: **Not accepted**. The deterministic findings are shown with a fixed reason. HTTP errors and timeouts are never revised.
+- Limits: at most two completions and one Nightshift discovery per investigation, under a shared 130 s completion deadline plus a 10 s discovery check. A cold Nightshift model load that exceeds it is returned, not revised; the single-call timeout was previously 180 s. The deadline does not include a Zetaris query (up to 120 s) run first, so Zetaris plus an explanation can exceed 150 s. No request fields were added.
+- The Review panel shows only fixed-template check results. Failed drafts and any model reasoning are never returned. Findings are unchanged and analyst notes stay advisory and uncitable.
+
+`npm run demo:loop` serves the real app against a scripted loopback runtime labelled **Mock runtime — scripted responses** (port 4318; FE-102 accepted, FE-101 and FE-104 revised, FE-103 not accepted). It needs `npm run build` first, uses no credentials and is not a live provider. There is no production demo-mode switch.
+
 ## Demo journey
 
 1. Investigate FE-101 with local fixtures. Follow E-102, E-103 and R-02. The manager already approved; the finance assignment failed.

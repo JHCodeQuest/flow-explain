@@ -35,7 +35,7 @@ test("the critic passes a compliant draft and names each failed check", () => {
     ["contradiction: wrong scenario cause", "FE-103", draft("Validation failed (E-301, R-03): the destination group is missing.", ["E-301", "R-03"]).content, ["contradiction"]],
     ["contradiction: unknown names a cause", "FE-104", draft("This was caused by a connector outage (E-401, R-04).", ["E-401", "R-04"]).content, ["contradiction"]],
     ["contradiction: unknown without hedge", "FE-104", draft("The request has no recent update (E-401, R-04).", ["E-401", "R-04"]).content, ["contradiction"]],
-    ["no-change: claims remediation", "FE-101", draft("Approval E-102 completed; E-103 failed under R-02 and the group was reset.", ["E-102", "E-103", "R-02"]).content, ["no-change"]],
+    ["no-change: claims remediation", "FE-101", draft("Approval E-102 completed; E-103 failed under R-02 and we reset the group.", ["E-102", "E-103", "R-02"]).content, ["no-change"]],
   ];
   for (const [name, caseId, content, expected] of cases) assert.deepEqual(failed(run(caseId, content)), expected, name);
   assert.deepEqual(failed(run("FE-104", draft("Evidence is insufficient to name a cause (E-401, R-04).", ["E-401", "R-04"]).content)), []);
@@ -129,4 +129,25 @@ test("the NVIDIA adapter runs the same loop against only its own endpoint", asyn
   const transport = (async (url: string) => { urls.push(url); return new Response(JSON.stringify({ choices: [{ message: { content: (chats++ ? GOOD : BAD).content } }] })); }) as typeof fetch;
   const n = await explainWithNvidia(investigate(demo, "FE-101"), { nvidiaKey: "k", nvidiaModel: "synthetic-model", nvidiaBase: "https://example.test/v1" }, transport);
   assert.equal(n.review?.outcome, "revised"); assert.deepEqual(urls, ["https://example.test/v1/chat/completions", "https://example.test/v1/chat/completions"]);
+});
+
+test("honest history, prose look-alikes and paraphrased notes do not fail; look-alike citations still do", () => {
+  const ok = (summary: string) => assert.deepEqual(failed(run("FE-101", draft(summary, ["E-102", "E-103", "R-02"]).content)), [], summary);
+  ok("The assignment was escalated in the past (E-103); approval E-102 completed under R-02. E-mail routing is unrelated.");
+  ok("R-squared aside, approval E-102 completed and E-103 failed under R-02.");
+  const noted = investigate(demo, "FE-101");
+  noted.lessons = [{ id: "mem-1", text: "Inspect the routing event before assuming a missing finance task means approval is pending.", scenario: "routing", sourceCaseId: "FE-101", createdAt: "2026-10-20T09:00:00Z" }];
+  const para = critique(noted, draft("Check the routing step first; E-102 completed and E-103 failed under R-02.", ["E-102", "E-103", "R-02"]).content, explanationMessages(noted).allowed);
+  assert.equal(para.attempt.passed, true);
+  for (const bad of ["We retried the handoff (E-102, E-103, R-02).", "The handoff has been resubmitted (E-102, E-103, R-02).", "See MEM-1 and e-103 (E-102, E-103, R-02)."]) assert.equal(run("FE-101", draft(bad, ["E-102", "E-103", "R-02"]).content).attempt.passed, false, bad);
+  assert.deepEqual(failed(run("FE-101", " ".repeat(10_000))), ["envelope"]);
+});
+test("each completion receives a live abort signal sized to the remaining shared deadline", async () => {
+  const signals: AbortSignal[] = [];
+  const complete: Complete = async (_m, signal) => { signals.push(signal); return signals.length === 1 ? BAD : GOOD; };
+  await reviewedExplanation(investigate(demo, "FE-101"), complete, opts);
+  assert.equal(signals.length, 2); assert.ok(signals.every((s) => !s.aborted));
+  const slow: Complete = (_m, signal) => new Promise((_, reject) => signal.addEventListener("abort", () => reject(signal.reason)));
+  let t = 0; const n = await reviewedExplanation(investigate(demo, "FE-101"), slow, { ...opts, now: () => (t += 129_999) });
+  assert.equal(n.review?.outcome, "returned"); assert.equal(n.reason, opts.failure);
 });
