@@ -87,7 +87,7 @@ Nothing here has been submitted or published. The deck is not built yet; this fi
 - Nightshift drafts. A deterministic critic runs six checks: JSON, citations, inline references, coverage, named contradictions, claimed remediation.
 - Accept, revise once, or return the findings with a fixed reason. The same checks must pass again.
 - At most 2 completions and 1 discovery check in a 180 s budget. HTTP errors and timeouts are not revised.
-- **LIVE (Nightshift, 23 Oct 2026):** FE-101 accepted on the first draft in one run, and after one revision in a later run. A live return has not been observed.
+- **LIVE (Nightshift, 23 Oct 2026):** FE-101: one run accepted on the first draft, a later run after one revision. A live return has not been observed.
 - **MOCK RUNTIME — SCRIPTED RESPONSES:** FE-102 accepted · FE-101 and FE-104 revised · FE-103 returned with the findings and no model text.
 - The scripted demo shows the branches, not live model quality.
 
@@ -103,7 +103,7 @@ Nothing here has been submitted or published. The deck is not built yet; this fi
 *Limits*
 - The critic checks structure, citations, coverage and named contradictions. It is not proof of correctness.
 - A valid citation may not be relevant (live: R-04).
-- Synthetic data, no tenant, nothing remediated. One live sample per integration.
+- Synthetic data, no tenant, nothing remediated. Live runs are samples: three Nightshift runs on 23 Oct.
 
 *Pre-existing, declared*
 - Commit `7feb021`, 20 Oct 2026: evidence engine, Zetaris join, H-MEM notes, NVIDIA adapter, interface. Codex-assisted.
@@ -116,7 +116,7 @@ Nothing here has been submitted or published. The deck is not built yet; this fi
 
 **Visual:** three columns (limits, pre-existing, new) with the future list as a footer strip. No screenshots.
 
-**Speaker notes:** The honest summary. The checks are useful but narrow, and one accepted live run is a sample, not proof. The earlier prototype is declared: the evidence engine, Zetaris and H-MEM, with Codex assistance. What I built in the window is the Nightshift route and the feedback loop, with Claude Code. Cursor use is not claimed. The future items are proposals only. Wording-based checks can miss or over-flag, and H-MEM supports one local process.
+**Speaker notes:** The honest summary. The checks are useful but narrow, and the live runs are samples, not proof: three Nightshift runs on 23 October, two accepted on the first draft and one after a revision. The earlier prototype is declared: the evidence engine, Zetaris and H-MEM, with Codex assistance. What I built in the window is the Nightshift route and the feedback loop, with Claude Code. Cursor use is not claimed. The future items are proposals only. Wording-based checks can miss or over-flag, and H-MEM supports one local process.
 
 ---
 
